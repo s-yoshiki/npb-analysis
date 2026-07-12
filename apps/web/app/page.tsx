@@ -1,102 +1,96 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
+import { AppShell } from "@/components/app-shell";
+import {
+  SeasonSparkline,
+  TeamDistribution,
+} from "@/components/dashboard/dashboard-charts";
+import { PlayerResults } from "@/components/dashboard/player-results";
+import { PlayerSearchForm } from "@/components/dashboard/player-search-form";
+import { MetricCard } from "@/components/metric-card";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { formatNumber } from "@/lib/format";
+import {
+  getPlayers,
+  getSeasonTrends,
+  getSummary,
+  getTopTeams,
+  hasDatabase,
+} from "@/lib/npb-db";
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
+export const dynamic = "force-dynamic";
+
+type PageProps = {
+  searchParams?: Promise<{
+    q?: string;
+  }>;
 };
 
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
+export default async function Home({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const query = params?.q ?? "";
+  const summary = getSummary();
+  const players = getPlayers(query);
+  const trends = getSeasonTrends();
+  const teams = getTopTeams();
+  const databaseReady = hasDatabase();
 
   return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
-
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.dev/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+    <AppShell label="SQLite / Recharts / shadcn/ui">
+      <section className="grid items-end gap-8 py-2 lg:grid-cols-[minmax(0,1fr)_minmax(320px,440px)]">
+        <div>
+          <Badge className="mb-4" variant="outline">
+            NPB Player Database
+          </Badge>
+          <h1 className="max-w-4xl text-4xl font-black leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl">
+            NPB全選手データを検索・集計・可視化
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+            npb.jp
+            の選手ページをSQLiteへ取り込み、歴代選手の打撃・投手成績を一覧とチャートで確認できます。
+          </p>
         </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.dev?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.dev →
-        </a>
-      </footer>
-    </div>
+        <PlayerSearchForm defaultValue={query} />
+      </section>
+
+      {!databaseReady ? (
+        <Card className="border-chart-3/30 bg-chart-3/10">
+          <CardContent className="flex flex-wrap items-center gap-2 text-sm">
+            <strong>DBがまだ作成されていません。</strong>
+            <code className="rounded-md bg-background px-2 py-1 font-mono text-xs">
+              pnpm --filter npb-analysis run import-json
+            </code>
+            <span>または全件取得なら</span>
+            <code className="rounded-md bg-background px-2 py-1 font-mono text-xs">
+              pnpm --filter npb-analysis run scrape -- --delay 300
+            </code>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <section className="grid gap-4 sm:grid-cols-3">
+        <MetricCard
+          label="選手数"
+          value={formatNumber(summary.players)}
+          helper={`${formatNumber(summary.firstSeason)} - ${formatNumber(summary.lastSeason)}`}
+        />
+        <MetricCard
+          label="打撃成績"
+          value={formatNumber(summary.battingRows)}
+          helper={`${formatNumber(summary.hitters)} players`}
+        />
+        <MetricCard
+          label="投手成績"
+          value={formatNumber(summary.pitchingRows)}
+          helper={`${formatNumber(summary.pitchers)} players`}
+        />
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+        <SeasonSparkline trends={trends} />
+        <TeamDistribution teams={teams} />
+      </section>
+
+      <PlayerResults players={players} query={query} />
+    </AppShell>
   );
 }

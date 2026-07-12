@@ -1,159 +1,68 @@
-# Turborepo starter
+# NPB Analysis
 
-This Turborepo starter is maintained by the Turborepo core team.
+NPB公式サイトの選手ページから選手プロフィール、打撃成績、投手成績を取得し、SQLiteに取り込んで閲覧・可視化するNext.jsアプリです。
 
-## Using this example
+## Requirements
 
-Run the following command:
+- Node.js 26
+- pnpm 9
 
-```sh
-npx create-turbo@latest
-```
+Node.jsのバージョンは `.node-version` と `.nvmrc` で `26` に固定しています。
 
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+## Setup
 
 ```sh
-cd my-turborepo
-turbo build
+pnpm install
+pnpm --filter npb-analysis run import-json
+pnpm --filter web run dev
 ```
 
-Without global `turbo`, use your package manager:
+Webアプリは http://localhost:3000 で起動します。
+
+## Data Pipeline
+
+既存のJSONからDBを作る場合:
 
 ```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+pnpm --filter npb-analysis run import-json
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+NPB公式サイトから全件取得する場合:
 
 ```sh
-turbo build --filter=docs
+pnpm --filter npb-analysis run scrape -- --delay 300
 ```
 
-Without global `turbo`:
+少数件だけデバッグする場合:
 
 ```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+pnpm --filter npb-analysis exec tsx src/main.ts \
+  --limit 3 \
+  --kana-limit 1 \
+  --debug \
+  --delay 100 \
+  --output-dir /private/tmp/npb-parser-debug \
+  --db /private/tmp/npb-parser-debug/npb-debug.sqlite
 ```
 
-### Develop
+生成される本番用DBは `apps/web/data/npb.sqlite` です。SQLiteファイルは再生成可能なためGit管理対象外です。
 
-To develop all apps and packages, run the following command:
+## Apps and Packages
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+- `apps/web`: Next.js dashboard. Tailwind CSSでUIを構築し、Node.js 26の `node:sqlite` でDBを読みます。
+- `scripts/parser`: NPB公式サイトのスクレイパーとSQLite importer。
+- `packages/ui`: Turborepo starter由来の共有UIパッケージ。
+- `packages/eslint-config`: 共有ESLint設定。
+- `packages/typescript-config`: 共有TypeScript設定。
+
+## Verification
 
 ```sh
-cd my-turborepo
-turbo dev
+pnpm --filter web run lint
+pnpm --filter web run check-types
+pnpm --filter web run build
 ```
 
-Without global `turbo`, use your package manager:
+## Notes
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+スクレイピング対象は `https://npb.jp/bis/players/` 配下です。実行時はアクセス間隔を置き、検証では `--limit` と `--kana-limit` を使って小さく確認してください。

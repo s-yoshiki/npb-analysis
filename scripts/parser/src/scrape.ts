@@ -6,10 +6,15 @@ function normalizeCellText(value: string): string {
   return value.replace(/\s+/g, " ").trim();
 }
 
-function parseStatTable($: cheerio.Root, selector: string): Record<string, string>[] {
+function parseStatTable(
+  $: cheerio.Root,
+  selector: string,
+): Record<string, string>[] {
   const rows: Record<string, string>[] = [];
-  const headers = $(selector)
-    .find("thead th")
+  const table = $(selector);
+  const headers = table
+    .children("thead")
+    .find("th")
     .map((_, th) => normalizeCellText($(th).text() ?? ""))
     .get();
 
@@ -17,11 +22,12 @@ function parseStatTable($: cheerio.Root, selector: string): Record<string, strin
     return rows;
   }
 
-  $(selector)
-    .find("tbody tr")
+  table
+    .children("tbody")
+    .children("tr")
     .each((_, tr) => {
       const cells = $(tr)
-        .find("td, th")
+        .children("td, th")
         .map((_, cell) => normalizeCellText($(cell).text() ?? ""))
         .get();
 
@@ -58,13 +64,19 @@ export async function scrapePlayer(url: string): Promise<PlayerScrapeResult> {
   const kanaName = $("#pc_v_name li").eq(1).text().trim();
 
   const detailInfo: Record<string, string> = {};
-  $("#pc_v_name table tr").each((_, tr) => {
-    const key = normalizeCellText($(tr).find("th").text() ?? "");
-    const value = normalizeCellText($(tr).find("td").text() ?? "");
-    if (key) {
-      detailInfo[key] = value;
-    }
-  });
+  $("table")
+    .not("#tablefix_p")
+    .not("#tablefix_b")
+    .not(".table_inning")
+    .first()
+    .find("tr")
+    .each((_, tr) => {
+      const key = normalizeCellText($(tr).find("th").text() ?? "");
+      const value = normalizeCellText($(tr).find("td").text() ?? "");
+      if (key) {
+        detailInfo[key] = value;
+      }
+    });
 
   const pitchingStats = parseStatTable($, "#tablefix_p");
   const battingStats = parseStatTable($, "#tablefix_b");

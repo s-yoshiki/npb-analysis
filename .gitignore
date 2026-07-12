@@ -36,3 +36,9 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+.next
+
+# Generated NPB data
+apps/web/data/*.sqlite
+apps/web/data/*.sqlite-*
