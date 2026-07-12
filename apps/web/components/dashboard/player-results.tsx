@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -142,11 +143,17 @@ function PlayerDesktopTable({ players }: { players: PlayerListRow[] }) {
 }
 
 export function PlayerResults({
+  description,
+  pageSummary,
   players,
   query,
+  total,
 }: {
+  description?: string;
+  pageSummary?: ReactNode;
   players: PlayerListRow[];
   query: string;
+  total?: number;
 }) {
   return (
     <Card className="bg-card shadow-sm">
@@ -154,10 +161,13 @@ export function PlayerResults({
         <div>
           <CardTitle>選手一覧</CardTitle>
           <CardDescription>
-            {query ? `「${query}」の検索結果` : "出場数順に最大80件を表示"}
+            {description ??
+              (query ? `「${query}」の検索結果` : "出場数順に表示")}
           </CardDescription>
         </div>
-        <Badge variant="secondary">{formatNumber(players.length)} rows</Badge>
+        <Badge variant="secondary">
+          {formatNumber(total ?? players.length)} rows
+        </Badge>
       </CardHeader>
       <CardContent className="pt-2">
         {players.length ? (
@@ -170,6 +180,7 @@ export function PlayerResults({
             該当する選手が見つかりません。
           </p>
         )}
+        {pageSummary ? <div className="mt-5">{pageSummary}</div> : null}
       </CardContent>
     </Card>
   );

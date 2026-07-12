@@ -3,33 +3,24 @@ import {
   SeasonSparkline,
   TeamDistribution,
 } from "@/components/dashboard/dashboard-charts";
-import { PlayerResults } from "@/components/dashboard/player-results";
 import { PlayerSearchForm } from "@/components/dashboard/player-search-form";
 import { MetricCard } from "@/components/metric-card";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatNumber } from "@/lib/format";
 import {
-  getPlayers,
   getSeasonTrends,
   getSummary,
   getTopTeams,
   hasDatabase,
 } from "@/lib/npb-db";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-type PageProps = {
-  searchParams?: Promise<{
-    q?: string;
-  }>;
-};
-
-export default async function Home({ searchParams }: PageProps) {
-  const params = await searchParams;
-  const query = params?.q ?? "";
+export default async function Home() {
   const summary = getSummary();
-  const players = getPlayers(query);
   const trends = getSeasonTrends();
   const teams = getTopTeams();
   const databaseReady = hasDatabase();
@@ -50,7 +41,16 @@ export default async function Home({ searchParams }: PageProps) {
           </p>
         </div>
         <div className="mt-8 lg:mt-0">
-          <PlayerSearchForm defaultValue={query} />
+          <PlayerSearchForm defaultValue="" />
+          <Link
+            className={buttonVariants({
+              className: "mt-3 w-full",
+              variant: "outline",
+            })}
+            href="/players"
+          >
+            選手一覧を開く
+          </Link>
         </div>
       </section>
 
@@ -91,8 +91,6 @@ export default async function Home({ searchParams }: PageProps) {
         <SeasonSparkline trends={trends} />
         <TeamDistribution teams={teams} />
       </section>
-
-      <PlayerResults players={players} query={query} />
     </AppShell>
   );
 }

@@ -5,8 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { usePlayerSearch } from "@/hooks/use-player-search";
 
-export function PlayerSearchForm({ defaultValue }: { defaultValue: string }) {
-  const { isPending, submitSearch } = usePlayerSearch();
+export function PlayerSearchForm({
+  defaultValue,
+  basePath = "/players",
+}: {
+  defaultValue: string;
+  basePath?: string;
+}) {
+  const { isPending, submitSearch } = usePlayerSearch(basePath);
 
   return (
     <form

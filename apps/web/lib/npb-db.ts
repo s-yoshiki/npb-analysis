@@ -19,6 +19,14 @@ export type PlayerListRow = {
   era: number | null;
 };
 
+export type PlayersPage = {
+  players: PlayerListRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+};
+
 export type Summary = {
   players: number;
   battingRows: number;
@@ -200,19 +208,59 @@ export function getSummary(): Summary {
   }
 }
 
-export function getPlayers(query: string): PlayerListRow[] {
+function getPlayerListWhere(query: string) {
+  const normalizedQuery = query.trim();
+
+  return {
+    normalizedQuery,
+    params: normalizedQuery
+      ? [likeQuery(normalizedQuery), likeQuery(normalizedQuery)]
+      : [],
+    whereSql: normalizedQuery
+      ? "WHERE p.name LIKE ? ESCAPE '\\' OR p.kana LIKE ? ESCAPE '\\'"
+      : "",
+  };
+}
+
+export function getPlayersPage({
+  page,
+  pageSize,
+  query,
+}: {
+  page: number;
+  pageSize: number;
+  query: string;
+}): PlayersPage {
   const db = openDb();
   if (!db) {
-    return [];
+    return {
+      players: [],
+      total: 0,
+      page: 1,
+      pageSize,
+      totalPages: 1,
+    };
   }
 
-  const normalizedQuery = query.trim();
-  const params = normalizedQuery
-    ? [likeQuery(normalizedQuery), likeQuery(normalizedQuery)]
-    : [];
+  const { params, whereSql } = getPlayerListWhere(query);
+  const safePageSize = Math.max(1, Math.min(pageSize, 100));
+  const requestedPage = Math.max(1, page);
 
   try {
-    return db
+    const totalRow = db
+      .prepare(
+        `
+        SELECT COUNT(*) AS total
+        FROM players p
+        ${whereSql}
+      `,
+      )
+      .get(...params) as { total: number } | undefined;
+    const total = totalRow?.total ?? 0;
+    const totalPages = Math.max(1, Math.ceil(total / safePageSize));
+    const currentPage = Math.min(requestedPage, totalPages);
+    const offset = (currentPage - 1) * safePageSize;
+    const players = db
       .prepare(
         `
         SELECT
@@ -254,15 +302,27 @@ export function getPlayers(query: string): PlayerListRow[] {
           FROM pitching_stats
           GROUP BY player_id
         ) pi ON pi.player_id = p.id
-        ${normalizedQuery ? "WHERE p.name LIKE ? ESCAPE '\\' OR p.kana LIKE ? ESCAPE '\\'" : ""}
+        ${whereSql}
         ORDER BY COALESCE(b.games, 0) + COALESCE(pi.games, 0) DESC, p.kana ASC
-        LIMIT 80
+        LIMIT ? OFFSET ?
       `,
       )
-      .all(...params) as PlayerListRow[];
+      .all(...params, safePageSize, offset) as PlayerListRow[];
+
+    return {
+      players,
+      total,
+      page: currentPage,
+      pageSize: safePageSize,
+      totalPages,
+    };
   } finally {
     db.close();
   }
+}
+
+export function getPlayers(query: string): PlayerListRow[] {
+  return getPlayersPage({ page: 1, pageSize: 80, query }).players;
 }
 
 export function getSeasonTrends(): SeasonTrend[] {

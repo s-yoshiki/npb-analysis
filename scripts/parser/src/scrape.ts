@@ -60,8 +60,8 @@ export async function scrapePlayer(url: string): Promise<PlayerScrapeResult> {
 
   const $ = cheerio.load(data);
 
-  const playerName = $("#pc_v_name li").first().text().trim();
-  const kanaName = $("#pc_v_name li").eq(1).text().trim();
+  const playerName = $("li#pc_v_name").first().text().trim();
+  const kanaName = $("li#pc_v_kana").first().text().trim();
 
   const detailInfo: Record<string, string> = {};
   $("table")
