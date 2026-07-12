@@ -38,7 +38,7 @@ function useChartRows(data: ChartPoint[]) {
 
 function EmptyChart({ label }: { label: string }) {
   return (
-    <Card className="bg-card/95 shadow-sm">
+    <Card className="bg-card shadow-sm">
       <CardHeader>
         <CardTitle>{label}</CardTitle>
       </CardHeader>
@@ -59,7 +59,7 @@ export function BattingTrendChart({ data }: { data: ChartPoint[] }) {
   }
 
   return (
-    <Card className="bg-card/95 shadow-sm">
+    <Card className="bg-card shadow-sm transition-all duration-300 hover:shadow-md">
       <CardHeader>
         <CardTitle>打撃推移</CardTitle>
         <CardDescription>安打・本塁打・打点の年度別推移</CardDescription>
@@ -122,7 +122,7 @@ export function PitchingTrendChart({ data }: { data: ChartPoint[] }) {
   }
 
   return (
-    <Card className="bg-card/95 shadow-sm">
+    <Card className="bg-card shadow-sm transition-all duration-300 hover:shadow-md">
       <CardHeader>
         <CardTitle>投手推移</CardTitle>
         <CardDescription>勝利・奪三振・防御率の年度別推移</CardDescription>

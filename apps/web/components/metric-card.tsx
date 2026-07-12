@@ -10,7 +10,7 @@ export function MetricCard({
   helper: string;
 }) {
   return (
-    <Card className="bg-card/95 shadow-sm">
+    <Card className="bg-card shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
       <CardContent className="grid gap-2.5 py-5">
         <span className="text-xs font-extrabold uppercase tracking-[0.08em] text-muted-foreground">
           {label}

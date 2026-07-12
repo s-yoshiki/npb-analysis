@@ -36,7 +36,7 @@ export default async function Home({ searchParams }: PageProps) {
 
   return (
     <AppShell label="SQLite / Recharts / shadcn/ui">
-      <section className="grid items-end gap-8 py-2 lg:grid-cols-[minmax(0,1fr)_minmax(320px,440px)]">
+      <section className="rounded-2xl border bg-card px-5 py-8 shadow-sm sm:px-8 sm:py-10 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,440px)] lg:items-end lg:gap-10">
         <div>
           <Badge className="mb-4" variant="outline">
             NPB Player Database
@@ -49,7 +49,9 @@ export default async function Home({ searchParams }: PageProps) {
             の選手ページをSQLiteへ取り込み、歴代選手の打撃・投手成績を一覧とチャートで確認できます。
           </p>
         </div>
-        <PlayerSearchForm defaultValue={query} />
+        <div className="mt-8 lg:mt-0">
+          <PlayerSearchForm defaultValue={query} />
+        </div>
       </section>
 
       {!databaseReady ? (

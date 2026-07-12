@@ -55,7 +55,7 @@ export function PlayerStatTable<
   const secondaryColumn = columns[1];
 
   return (
-    <Card className="bg-card/95 shadow-sm">
+    <Card className="bg-card shadow-sm">
       <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <CardTitle>{title}</CardTitle>
@@ -68,7 +68,10 @@ export function PlayerStatTable<
           <>
             <div className="grid gap-3 md:hidden">
               {rows.map((row, index) => (
-                <div className="rounded-xl border bg-card p-4" key={index}>
+                <div
+                  className="rounded-xl border bg-card p-4 shadow-sm"
+                  key={index}
+                >
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <strong className="text-lg">
                       {primaryColumn

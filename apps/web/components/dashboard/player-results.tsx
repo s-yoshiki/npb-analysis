@@ -34,7 +34,7 @@ function PlayerMobileCards({ players }: { players: PlayerListRow[] }) {
     <div className="grid gap-3 md:hidden">
       {players.map((player) => (
         <Link
-          className="rounded-xl border bg-card p-4 shadow-sm transition hover:bg-muted/30"
+          className="rounded-xl border bg-card p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
           href={`/players/${player.id}`}
           key={player.id}
         >
@@ -99,7 +99,10 @@ function PlayerDesktopTable({ players }: { players: PlayerListRow[] }) {
           {players.map((player) => (
             <TableRow key={player.id}>
               <TableCell>
-                <Link className="grid gap-0.5" href={`/players/${player.id}`}>
+                <Link
+                  className="grid gap-0.5 transition-colors hover:text-primary"
+                  href={`/players/${player.id}`}
+                >
                   <strong>{player.name}</strong>
                   <span className="text-xs text-muted-foreground">
                     {player.kana || player.id}
@@ -146,7 +149,7 @@ export function PlayerResults({
   query: string;
 }) {
   return (
-    <Card className="bg-card/95 shadow-sm">
+    <Card className="bg-card shadow-sm">
       <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <CardTitle>選手一覧</CardTitle>

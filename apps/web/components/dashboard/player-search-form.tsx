@@ -11,7 +11,7 @@ export function PlayerSearchForm({ defaultValue }: { defaultValue: string }) {
   return (
     <form
       action={submitSearch}
-      className="grid gap-4 rounded-xl border bg-card/95 p-5 shadow-sm sm:p-6"
+      className="grid gap-4 rounded-xl border bg-card p-5 shadow-sm sm:p-6"
     >
       <Label className="text-muted-foreground" htmlFor="q">
         選手名検索

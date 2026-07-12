@@ -23,7 +23,7 @@ export function SeasonSparkline({ trends }: { trends: SeasonTrend[] }) {
     .join(" ");
 
   return (
-    <Card className="bg-card/95 shadow-sm">
+    <Card className="bg-card shadow-sm transition-all duration-300 hover:shadow-md">
       <CardHeader>
         <CardTitle>年度別の登録推移</CardTitle>
         <CardDescription>
@@ -63,7 +63,7 @@ export function TeamDistribution({ teams }: { teams: TeamCount[] }) {
   const max = Math.max(1, ...teams.map((team) => team.players));
 
   return (
-    <Card className="bg-card/95 shadow-sm">
+    <Card className="bg-card shadow-sm transition-all duration-300 hover:shadow-md">
       <CardHeader>
         <CardTitle>球団別の選手数</CardTitle>
         <CardDescription>成績表に登場する球団名で集計</CardDescription>

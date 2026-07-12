@@ -94,7 +94,7 @@ export default async function PlayerPage({ params }: PageProps) {
 
   return (
     <AppShell label="Player Detail">
-      <section>
+      <section className="rounded-2xl border bg-card px-5 py-8 shadow-sm sm:px-8 sm:py-10">
         <Link
           className={buttonVariants({ className: "mb-8", variant: "ghost" })}
           href="/"

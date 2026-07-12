@@ -10,22 +10,23 @@ export function AppShell({
 }) {
   return (
     <main className="min-h-svh bg-background text-foreground">
-      <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(circle_at_20%_0%,color-mix(in_oklch,var(--primary),transparent_82%),transparent_36%),linear-gradient(180deg,color-mix(in_oklch,var(--card),transparent_4%),transparent)]" />
-      <div className="mx-auto flex w-full max-w-6xl flex-col px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
-        <header className="mb-10 flex items-center justify-between gap-4 border-b pb-4">
+      <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85">
+        <div className="container mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <Link
-            className="text-sm font-black tracking-[0.12em] text-primary"
+            className="text-xl font-extrabold tracking-tight sm:text-2xl"
             href="/"
           >
-            NPB ANALYSIS
+            NPB Analysis
           </Link>
           {label ? (
-            <Badge variant="secondary" className="shrink-0">
+            <Badge className="shrink-0" variant="secondary">
               {label}
             </Badge>
           ) : null}
-        </header>
-        <div className="w-full space-y-6 sm:space-y-8">{children}</div>
+        </div>
+      </header>
+      <div className="container mx-auto flex w-full max-w-6xl flex-col px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+        <div className="w-full space-y-10 sm:space-y-12">{children}</div>
       </div>
     </main>
   );
