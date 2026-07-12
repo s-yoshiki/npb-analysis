@@ -68,38 +68,37 @@ export function PlayerStatTable<
           <>
             <div className="grid gap-3 md:hidden">
               {rows.map((row, index) => (
-                <div
-                  className="rounded-xl border bg-card p-4 shadow-sm"
-                  key={index}
-                >
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <strong className="text-lg">
-                      {primaryColumn
-                        ? String(row[primaryColumn.key] ?? "-")
-                        : "-"}
-                    </strong>
-                    <span className="text-sm font-bold text-muted-foreground">
-                      {secondaryColumn
-                        ? String(row[secondaryColumn.key] ?? "-")
-                        : "-"}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {columns.slice(2, 10).map((column) => (
-                      <span
-                        className="rounded-md bg-muted px-2 py-2"
-                        key={String(column.key)}
-                      >
-                        <span className="block text-[11px] font-bold text-muted-foreground">
-                          {column.label}
-                        </span>
-                        <strong className="block text-base">
-                          {displayValue(row, column)}
-                        </strong>
+                <Card key={index}>
+                  <CardContent className="p-4">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <strong className="text-lg">
+                        {primaryColumn
+                          ? String(row[primaryColumn.key] ?? "-")
+                          : "-"}
+                      </strong>
+                      <span className="text-sm font-bold text-muted-foreground">
+                        {secondaryColumn
+                          ? String(row[secondaryColumn.key] ?? "-")
+                          : "-"}
                       </span>
-                    ))}
-                  </div>
-                </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {columns.slice(2, 10).map((column) => (
+                        <span
+                          className="rounded-md bg-muted px-2 py-2"
+                          key={String(column.key)}
+                        >
+                          <span className="block text-[11px] font-bold text-muted-foreground">
+                            {column.label}
+                          </span>
+                          <strong className="block text-base">
+                            {displayValue(row, column)}
+                          </strong>
+                        </span>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
             <div className="hidden md:block">

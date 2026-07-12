@@ -3,6 +3,7 @@ import { PlayerResults } from "@/components/dashboard/player-results";
 import { PlayerSearchForm } from "@/components/dashboard/player-search-form";
 import { PlayerPagination } from "@/components/players/player-pagination";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { getPlayersPage } from "@/lib/npb-db";
 
 export const dynamic = "force-dynamic";
@@ -36,22 +37,24 @@ export default async function PlayersPage({ searchParams }: PageProps) {
 
   return (
     <AppShell label="Players">
-      <section className="rounded-2xl border bg-card px-5 py-8 shadow-sm sm:px-8 sm:py-10">
-        <Badge className="mb-4" variant="outline">
-          Player Search
-        </Badge>
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,440px)] lg:items-end">
-          <div>
-            <h1 className="max-w-3xl text-4xl font-black leading-[0.98] tracking-tight sm:text-6xl">
-              選手一覧・検索
-            </h1>
-            <p className="mt-5 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
-              選手名・かなで検索し、通算成績の概要から各選手の詳細ページへ移動できます。
-            </p>
+      <Card className="shadow-sm">
+        <CardContent className="px-5 py-8 sm:px-8 sm:py-10">
+          <Badge className="mb-4" variant="outline">
+            Player Search
+          </Badge>
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,440px)] lg:items-end">
+            <div>
+              <h1 className="max-w-3xl text-4xl font-black leading-[0.98] tracking-tight sm:text-6xl">
+                選手一覧・検索
+              </h1>
+              <p className="mt-5 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+                選手名・かなで検索し、通算成績の概要から各選手の詳細ページへ移動できます。
+              </p>
+            </div>
+            <PlayerSearchForm defaultValue={query} />
           </div>
-          <PlayerSearchForm defaultValue={query} />
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       <PlayerResults
         description={

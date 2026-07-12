@@ -27,32 +27,34 @@ export default async function Home() {
 
   return (
     <AppShell label="SQLite / Recharts / shadcn/ui">
-      <section className="rounded-2xl border bg-card px-5 py-8 shadow-sm sm:px-8 sm:py-10 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,440px)] lg:items-end lg:gap-10">
-        <div>
-          <Badge className="mb-4" variant="outline">
-            NPB Player Database
-          </Badge>
-          <h1 className="max-w-4xl text-4xl font-black leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl">
-            NPB全選手データを検索・集計・可視化
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
-            npb.jp
-            の選手ページをSQLiteへ取り込み、歴代選手の打撃・投手成績を一覧とチャートで確認できます。
-          </p>
-        </div>
-        <div className="mt-8 lg:mt-0">
-          <PlayerSearchForm defaultValue="" />
-          <Link
-            className={buttonVariants({
-              className: "mt-3 w-full",
-              variant: "outline",
-            })}
-            href="/players"
-          >
-            選手一覧を開く
-          </Link>
-        </div>
-      </section>
+      <Card className="shadow-sm">
+        <CardContent className="px-5 py-8 sm:px-8 sm:py-10 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,440px)] lg:items-end lg:gap-10">
+          <div>
+            <Badge className="mb-4" variant="outline">
+              NPB Player Database
+            </Badge>
+            <h1 className="max-w-4xl text-4xl font-black leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl">
+              NPB全選手データを検索・集計・可視化
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+              npb.jp
+              の選手ページをSQLiteへ取り込み、歴代選手の打撃・投手成績を一覧とチャートで確認できます。
+            </p>
+          </div>
+          <div className="mt-8 lg:mt-0">
+            <PlayerSearchForm defaultValue="" />
+            <Link
+              className={buttonVariants({
+                className: "mt-3 w-full",
+                variant: "outline",
+              })}
+              href="/players"
+            >
+              選手一覧を開く
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
 
       {!databaseReady ? (
         <Card className="border-chart-3/30 bg-chart-3/10">

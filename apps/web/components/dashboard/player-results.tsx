@@ -34,36 +34,36 @@ function PlayerMobileCards({ players }: { players: PlayerListRow[] }) {
   return (
     <div className="grid gap-3 md:hidden">
       {players.map((player) => (
-        <Link
-          className="rounded-xl border bg-card p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
-          href={`/players/${player.id}`}
-          key={player.id}
-        >
-          <div className="mb-3 flex items-start justify-between gap-3">
-            <div>
-              <strong className="block text-lg">{player.name}</strong>
-              <span className="text-xs text-muted-foreground">
-                {player.kana || player.id}
-              </span>
-            </div>
-            <Badge variant="outline">
-              {player.batting_seasons + player.pitching_seasons}年
-            </Badge>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <MobileMetric label="試合" value={formatNumber(player.games)} />
-            <MobileMetric label="安打" value={formatNumber(player.hits)} />
-            <MobileMetric
-              label="本塁打"
-              value={formatNumber(player.home_runs)}
-            />
-            <MobileMetric label="打点" value={formatNumber(player.rbi)} />
-            <MobileMetric label="勝利" value={formatNumber(player.wins)} />
-            <MobileMetric
-              label="防御率"
-              value={player.era === null ? "-" : player.era.toFixed(2)}
-            />
-          </div>
+        <Link href={`/players/${player.id}`} key={player.id}>
+          <Card className="shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+            <CardContent className="p-4">
+              <div className="mb-3 flex items-start justify-between gap-3">
+                <div>
+                  <strong className="block text-lg">{player.name}</strong>
+                  <span className="text-xs text-muted-foreground">
+                    {player.kana || player.id}
+                  </span>
+                </div>
+                <Badge variant="outline">
+                  {player.batting_seasons + player.pitching_seasons}年
+                </Badge>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <MobileMetric label="試合" value={formatNumber(player.games)} />
+                <MobileMetric label="安打" value={formatNumber(player.hits)} />
+                <MobileMetric
+                  label="本塁打"
+                  value={formatNumber(player.home_runs)}
+                />
+                <MobileMetric label="打点" value={formatNumber(player.rbi)} />
+                <MobileMetric label="勝利" value={formatNumber(player.wins)} />
+                <MobileMetric
+                  label="防御率"
+                  value={player.era === null ? "-" : player.era.toFixed(2)}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </Link>
       ))}
     </div>

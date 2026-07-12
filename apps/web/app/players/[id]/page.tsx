@@ -16,6 +16,7 @@ import {
 import { PlayerStatTable } from "@/components/player/player-stat-table";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatNumber, sumNumeric } from "@/lib/format";
 import {
@@ -94,38 +95,40 @@ export default async function PlayerPage({ params }: PageProps) {
 
   return (
     <AppShell label="Player Detail">
-      <section className="rounded-2xl border bg-card px-5 py-8 shadow-sm sm:px-8 sm:py-10">
-        <Link
-          className={buttonVariants({ className: "mb-8", variant: "ghost" })}
-          href="/"
-        >
-          一覧へ戻る
-        </Link>
-        <div className="grid items-end gap-6 md:grid-cols-[1fr_auto]">
-          <div>
-            <Badge className="mb-4" variant="outline">
-              Player Detail
-            </Badge>
-            <h1 className="text-5xl font-black leading-[0.96] tracking-tight sm:text-7xl">
-              {profile.name}
-            </h1>
-            <p className="mt-3 text-lg text-muted-foreground">
-              {profile.kana || profile.id}
-            </p>
-          </div>
-          <a
-            className={buttonVariants({
-              className: "w-full md:w-auto",
-              variant: "outline",
-            })}
-            href={profile.player_url}
-            target="_blank"
-            rel="noreferrer"
+      <Card className="shadow-sm">
+        <CardContent className="px-5 py-8 sm:px-8 sm:py-10">
+          <Link
+            className={buttonVariants({ className: "mb-8", variant: "ghost" })}
+            href="/players"
           >
-            NPB公式ページ
-          </a>
-        </div>
-      </section>
+            一覧へ戻る
+          </Link>
+          <div className="grid items-end gap-6 md:grid-cols-[1fr_auto]">
+            <div>
+              <Badge className="mb-4" variant="outline">
+                Player Detail
+              </Badge>
+              <h1 className="text-5xl font-black leading-[0.96] tracking-tight sm:text-7xl">
+                {profile.name}
+              </h1>
+              <p className="mt-3 text-lg text-muted-foreground">
+                {profile.kana || profile.id}
+              </p>
+            </div>
+            <a
+              className={buttonVariants({
+                className: "w-full md:w-auto",
+                variant: "outline",
+              })}
+              href={profile.player_url}
+              target="_blank"
+              rel="noreferrer"
+            >
+              NPB公式ページ
+            </a>
+          </div>
+        </CardContent>
+      </Card>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
