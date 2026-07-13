@@ -71,7 +71,9 @@ function parseJapaneseBirthDate(value: string | null): {
     };
   }
 
-  const [, year, month, day] = match;
+  const year = match[1]!;
+  const month = match[2]!;
+  const day = match[3]!;
   return {
     birthDateIso: `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`,
     birthYear: Number(year),
@@ -127,11 +129,7 @@ function createSchema(db: DatabaseSync) {
     PRAGMA journal_mode = WAL;
     PRAGMA foreign_keys = ON;
 
-    DROP TABLE IF EXISTS batting_stats;
-    DROP TABLE IF EXISTS pitching_stats;
-    DROP TABLE IF EXISTS players;
-
-    CREATE TABLE players (
+    CREATE TABLE IF NOT EXISTS players (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       kana TEXT,
@@ -155,7 +153,7 @@ function createSchema(db: DatabaseSync) {
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
-    CREATE TABLE batting_stats (
+    CREATE TABLE IF NOT EXISTS batting_stats (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       player_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
       season INTEGER,
@@ -184,7 +182,7 @@ function createSchema(db: DatabaseSync) {
       stats_json TEXT NOT NULL
     );
 
-    CREATE TABLE pitching_stats (
+    CREATE TABLE IF NOT EXISTS pitching_stats (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       player_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
       season INTEGER,
@@ -215,13 +213,13 @@ function createSchema(db: DatabaseSync) {
       stats_json TEXT NOT NULL
     );
 
-    CREATE INDEX idx_players_name ON players(name);
-    CREATE INDEX idx_players_kana ON players(kana);
-    CREATE INDEX idx_players_is_active ON players(is_active);
-    CREATE INDEX idx_batting_player ON batting_stats(player_id);
-    CREATE INDEX idx_batting_season ON batting_stats(season);
-    CREATE INDEX idx_pitching_player ON pitching_stats(player_id);
-    CREATE INDEX idx_pitching_season ON pitching_stats(season);
+    CREATE INDEX IF NOT EXISTS idx_players_name ON players(name);
+    CREATE INDEX IF NOT EXISTS idx_players_kana ON players(kana);
+    CREATE INDEX IF NOT EXISTS idx_players_is_active ON players(is_active);
+    CREATE INDEX IF NOT EXISTS idx_batting_player ON batting_stats(player_id);
+    CREATE INDEX IF NOT EXISTS idx_batting_season ON batting_stats(season);
+    CREATE INDEX IF NOT EXISTS idx_pitching_player ON pitching_stats(player_id);
+    CREATE INDEX IF NOT EXISTS idx_pitching_season ON pitching_stats(season);
   `);
 }
 
@@ -229,10 +227,15 @@ export function resolveDbPath(dbPath?: string): string {
   return path.resolve(process.cwd(), dbPath ?? DEFAULT_DB_PATH);
 }
 
-export function writePlayersToSqlite(
-  players: PlayerScrapeResult[],
+export type PlayerDatabaseWriter = {
+  dbPath: string;
+  close: () => void;
+  upsertPlayer: (player: PlayerScrapeResult) => void;
+};
+
+export function createPlayerDatabaseWriter(
   dbPath?: string,
-): string {
+): PlayerDatabaseWriter {
   const outputPath = resolveDbPath(dbPath);
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
@@ -247,7 +250,34 @@ export function writePlayersToSqlite(
       detail_json
     )
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      name = excluded.name,
+      kana = excluded.kana,
+      player_url = excluded.player_url,
+      is_active = excluded.is_active,
+      team = excluded.team,
+      position = excluded.position,
+      bats_throws = excluded.bats_throws,
+      height_weight = excluded.height_weight,
+      height_cm = excluded.height_cm,
+      weight_kg = excluded.weight_kg,
+      birth_date = excluded.birth_date,
+      birth_date_iso = excluded.birth_date_iso,
+      birth_year = excluded.birth_year,
+      birth_month = excluded.birth_month,
+      birth_day = excluded.birth_day,
+      birth_place = excluded.birth_place,
+      career = excluded.career,
+      draft = excluded.draft,
+      detail_json = excluded.detail_json
   `);
+
+  const deleteBatting = db.prepare(
+    "DELETE FROM batting_stats WHERE player_id = ?",
+  );
+  const deletePitching = db.prepare(
+    "DELETE FROM pitching_stats WHERE player_id = ?",
+  );
 
   const insertBatting = db.prepare(`
     INSERT INTO batting_stats (
@@ -271,9 +301,9 @@ export function writePlayersToSqlite(
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  db.exec("BEGIN");
-  try {
-    for (const player of players) {
+  const upsertPlayer = (player: PlayerScrapeResult) => {
+    db.exec("BEGIN");
+    try {
       const heightWeight = pickDetail(player.detailInfo, [
         "身長/体重",
         "身長／体重",
@@ -306,6 +336,9 @@ export function writePlayersToSqlite(
         pickDetail(player.detailInfo, ["ドラフト"]),
         JSON.stringify(player.detailInfo),
       );
+
+      deleteBatting.run(player.id);
+      deletePitching.run(player.id);
 
       for (const row of player.battingStats) {
         insertBatting.run(
@@ -368,13 +401,17 @@ export function writePlayersToSqlite(
           JSON.stringify(row),
         );
       }
-    }
-    db.exec("COMMIT");
-  } catch (error) {
-    db.exec("ROLLBACK");
-    throw error;
-  }
-  db.close();
 
-  return outputPath;
+      db.exec("COMMIT");
+    } catch (error) {
+      db.exec("ROLLBACK");
+      throw error;
+    }
+  };
+
+  return {
+    dbPath: outputPath,
+    close: () => db.close(),
+    upsertPlayer,
+  };
 }

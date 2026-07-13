@@ -7,7 +7,7 @@ function normalizeCellText(value: string): string {
 }
 
 function parseStatTable(
-  $: cheerio.Root,
+  $: cheerio.CheerioAPI,
   selector: string,
 ): Record<string, string>[] {
   const rows: Record<string, string>[] = [];
@@ -37,11 +37,12 @@ function parseStatTable(
 
       const row: Record<string, string> = {};
       for (let i = 0; i < Math.min(headers.length, cells.length); i += 1) {
-        let value = cells[i];
-        if (headers[i] === "投球回") {
+        const header = headers[i]!;
+        let value = cells[i]!;
+        if (header === "投球回") {
           value = value.replace(/\s+/g, "");
         }
-        row[headers[i]] = value;
+        row[header] = value;
       }
 
       rows.push(row);

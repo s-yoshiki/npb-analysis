@@ -63,10 +63,6 @@ export default async function Home() {
             <Database className="size-4 text-primary" />
             <strong>DBがまだ作成されていません。</strong>
             <code className="rounded-md bg-background px-2 py-1 font-mono text-xs">
-              pnpm --filter npb-analysis run import-json
-            </code>
-            <span>または全件取得なら</span>
-            <code className="rounded-md bg-background px-2 py-1 font-mono text-xs">
               pnpm --filter npb-analysis run scrape -- --delay 300
             </code>
           </CardContent>

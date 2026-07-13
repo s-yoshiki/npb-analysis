@@ -1,4 +1,4 @@
-# Scraping and Import
+# Scraping
 
 ## Source
 
@@ -11,12 +11,6 @@ https://npb.jp/bis/players/active/index.html
 It extracts kana index pages, then player detail URLs, then profile and stat tables for each player. Use `--scope all` to scrape both active and retired players; active status is determined by membership in the active-player index.
 
 ## Commands
-
-Import the checked-in JSON sample into the app DB:
-
-```sh
-pnpm --filter npb-analysis run import-json
-```
 
 Run a small live scrape for debugging:
 
@@ -49,11 +43,10 @@ pnpm --filter npb-analysis run scrape -- --scope all --delay 300
 - `--kana-limit <number|all>`: maximum kana index pages to scan.
 - `--delay <ms>`: delay between requests.
 - `--debug`: print extracted URL samples and parsed row counts.
-- `--output-dir <path>`: directory for `player_urls.json`, `player_urls.txt`, and `player_data.json`.
 - `--db <path>`: SQLite output path.
-- `--from-json <path>`: skip network scraping and import an existing player JSON file.
+- `--output-dir <path>`: accepted for compatibility with older debug commands; no files are written there.
 
-Older JSON without `isActive` remains importable and is treated as retired with a warning.
+Each parsed player is immediately inserted or updated in SQLite. Existing batting and pitching rows for that player are replaced in the same transaction. No intermediate `player_*` files are generated.
 
 ## Debug Checklist
 

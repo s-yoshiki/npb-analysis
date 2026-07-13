@@ -1,20 +1,15 @@
-import fs from "fs";
-import path from "path";
 import { fetchHtml } from "./fetch";
 import { parseKanaIndexUrls, parsePlayerUrlsFromKanaPage } from "./parse";
 import { scrapePlayer } from "./scrape";
-import { PlayerScrapeResult } from "./types";
 import { ACTIVE_INDEX_ROOT_URL, INDEX_ROOT_URL } from "./constants";
-import { writePlayersToSqlite } from "./db";
+import { createPlayerDatabaseWriter } from "./db";
 
 type CliOptions = {
   dbPath?: string;
   debug: boolean;
-  fromJson?: string;
   kanaLimit?: number;
   limit?: number;
   scope: "active" | "all";
-  outputDir: string;
   delayMs: number;
 };
 
@@ -23,7 +18,6 @@ function readCliOptions(): CliOptions {
   const options: CliOptions = {
     debug: false,
     delayMs: 250,
-    outputDir: process.cwd(),
     scope: "active",
   };
 
@@ -37,14 +31,8 @@ function readCliOptions(): CliOptions {
       continue;
     }
 
-    if (arg === "--from-json" && next) {
-      options.fromJson = next;
-      i += 1;
-      continue;
-    }
-
+    // Kept as a no-op for compatibility with older debug commands.
     if (arg === "--output-dir" && next) {
-      options.outputDir = path.resolve(process.cwd(), next);
       i += 1;
       continue;
     }
@@ -90,31 +78,6 @@ function sleep(ms: number): Promise<void> {
 
 async function main() {
   const options = readCliOptions();
-  const outputJson = path.resolve(options.outputDir, "player_urls.json");
-  const outputTxt = path.resolve(options.outputDir, "player_urls.txt");
-  const outputPlayersJson = path.resolve(options.outputDir, "player_data.json");
-
-  if (options.fromJson) {
-    const jsonPath = path.resolve(process.cwd(), options.fromJson);
-    const importedPlayers = JSON.parse(
-      fs.readFileSync(jsonPath, "utf-8"),
-    ) as (Omit<PlayerScrapeResult, "isActive"> & { isActive?: boolean })[];
-    const missingStatusCount = importedPlayers.filter(
-      (player) => player.isActive === undefined,
-    ).length;
-    if (missingStatusCount > 0) {
-      console.warn(
-        `Warning: ${missingStatusCount} imported records have no isActive flag; treating them as retired`,
-      );
-    }
-    const players: PlayerScrapeResult[] = importedPlayers.map((player) => ({
-      ...player,
-      isActive: player.isActive ?? false,
-    }));
-    const dbPath = writePlayersToSqlite(players, options.dbPath);
-    console.log(`Imported ${players.length} player records to ${dbPath}`);
-    return;
-  }
 
   const collectPlayerUrls = async (indexRootUrl: string) => {
     const rootHtml = await fetchHtml(indexRootUrl);
@@ -156,41 +119,32 @@ async function main() {
       ? activeUrls
       : await collectPlayerUrls(INDEX_ROOT_URL);
 
-  const players: PlayerScrapeResult[] = [];
-  let i = 0;
-  for (const url of [...urls].sort()) {
-    i++;
-    if (options.limit !== undefined && i > options.limit) {
-      break;
-    }
+  const sortedUrls = [...urls].sort();
+  const urlsToScrape =
+    options.limit === undefined
+      ? sortedUrls
+      : sortedUrls.slice(0, options.limit);
+  const writer = createPlayerDatabaseWriter(options.dbPath);
+  let savedCount = 0;
 
-    console.log(`Fetching player ${i}/${urls.size} ${url}`);
-    const playerData = await scrapePlayer(url, activeUrls.has(url));
-    players.push(playerData);
-    if (options.debug) {
-      console.log(
-        `  [debug] id=${playerData.id} name=${playerData.playerName || "(empty)"} isActive=${playerData.isActive} battingRows=${playerData.battingStats.length} pitchingRows=${playerData.pitchingStats.length} detailKeys=${Object.keys(playerData.detailInfo).length}`,
-      );
+  try {
+    for (const [index, url] of urlsToScrape.entries()) {
+      console.log(`Fetching player ${index + 1}/${urlsToScrape.length} ${url}`);
+      const playerData = await scrapePlayer(url, activeUrls.has(url));
+      writer.upsertPlayer(playerData);
+      savedCount += 1;
+      if (options.debug) {
+        console.log(
+          `  [debug] id=${playerData.id} name=${playerData.playerName || "(empty)"} isActive=${playerData.isActive} battingRows=${playerData.battingStats.length} pitchingRows=${playerData.pitchingStats.length} detailKeys=${Object.keys(playerData.detailInfo).length}`,
+        );
+      }
+      await sleep(options.delayMs);
     }
-    await sleep(options.delayMs);
+  } finally {
+    writer.close();
   }
 
-  const sortedUrls = [...urls].sort();
-  fs.mkdirSync(options.outputDir, { recursive: true });
-  fs.writeFileSync(outputJson, JSON.stringify(sortedUrls, null, 2), "utf-8");
-  fs.writeFileSync(outputTxt, sortedUrls.join("\n"), "utf-8");
-  fs.writeFileSync(
-    outputPlayersJson,
-    JSON.stringify(players, null, 2),
-    "utf-8",
-  );
-  const dbPath = writePlayersToSqlite(players, options.dbPath);
-
-  console.log(`Saved ${players.length} player records to ${dbPath}`);
-  console.log(`Saved ${players.length} player records to ${outputPlayersJson}`);
-  console.log(`Saved ${sortedUrls.length} player URLs to:`);
-  console.log(`  ${outputJson}`);
-  console.log(`  ${outputTxt}`);
+  console.log(`Saved ${savedCount} player records to ${writer.dbPath}`);
 }
 
 main().catch((error) => {
