@@ -27,10 +27,16 @@ Webアプリは http://localhost:3000 で起動します。
 pnpm --filter npb-analysis run import-json
 ```
 
-NPB公式サイトから全件取得する場合:
+NPB公式サイトから現役選手を取得する場合（標準）:
 
 ```sh
 pnpm --filter npb-analysis run scrape -- --delay 300
+```
+
+現役・引退済みを含む全選手を取得する場合:
+
+```sh
+pnpm --filter npb-analysis run scrape -- --scope all --delay 300
 ```
 
 少数件だけデバッグする場合:

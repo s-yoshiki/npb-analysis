@@ -136,6 +136,7 @@ function createSchema(db: DatabaseSync) {
       name TEXT NOT NULL,
       kana TEXT,
       player_url TEXT NOT NULL,
+      is_active INTEGER NOT NULL CHECK (is_active IN (0, 1)),
       team TEXT,
       position TEXT,
       bats_throws TEXT,
@@ -216,6 +217,7 @@ function createSchema(db: DatabaseSync) {
 
     CREATE INDEX idx_players_name ON players(name);
     CREATE INDEX idx_players_kana ON players(kana);
+    CREATE INDEX idx_players_is_active ON players(is_active);
     CREATE INDEX idx_batting_player ON batting_stats(player_id);
     CREATE INDEX idx_batting_season ON batting_stats(season);
     CREATE INDEX idx_pitching_player ON pitching_stats(player_id);
@@ -239,12 +241,12 @@ export function writePlayersToSqlite(
 
   const insertPlayer = db.prepare(`
     INSERT INTO players (
-      id, name, kana, player_url, team, position, bats_throws,
+      id, name, kana, player_url, is_active, team, position, bats_throws,
       height_weight, height_cm, weight_kg, birth_date, birth_date_iso,
       birth_year, birth_month, birth_day, birth_place, career, draft,
       detail_json
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const insertBatting = db.prepare(`
@@ -287,6 +289,7 @@ export function writePlayersToSqlite(
         player.playerName,
         player.kanaName,
         player.playerUrl,
+        player.isActive ? 1 : 0,
         pickDetail(player.detailInfo, ["所属球団", "球団"]),
         pickDetail(player.detailInfo, ["守備位置", "ポジション"]),
         pickDetail(player.detailInfo, ["投打", "投・打"]),

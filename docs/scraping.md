@@ -2,13 +2,13 @@
 
 ## Source
 
-The parser starts at:
+By default, the parser starts at the active-player index:
 
 ```txt
-https://npb.jp/bis/players/all/index.html
+https://npb.jp/bis/players/active/index.html
 ```
 
-It extracts kana index pages, then player detail URLs, then profile and stat tables for each player.
+It extracts kana index pages, then player detail URLs, then profile and stat tables for each player. Use `--scope all` to scrape both active and retired players; active status is determined by membership in the active-player index.
 
 ## Commands
 
@@ -30,21 +30,30 @@ pnpm --filter npb-analysis exec tsx src/main.ts \
   --db /private/tmp/npb-parser-debug/npb-debug.sqlite
 ```
 
-Run a full scrape:
+Run a full active-player scrape:
 
 ```sh
 pnpm --filter npb-analysis run scrape -- --delay 300
 ```
 
+Run a full scrape including retired players:
+
+```sh
+pnpm --filter npb-analysis run scrape -- --scope all --delay 300
+```
+
 ## CLI Options
 
 - `--limit <number|all>`: maximum player detail pages to scrape.
+- `--scope <active|all>`: scrape active players only (default), or all players.
 - `--kana-limit <number|all>`: maximum kana index pages to scan.
 - `--delay <ms>`: delay between requests.
 - `--debug`: print extracted URL samples and parsed row counts.
 - `--output-dir <path>`: directory for `player_urls.json`, `player_urls.txt`, and `player_data.json`.
 - `--db <path>`: SQLite output path.
 - `--from-json <path>`: skip network scraping and import an existing player JSON file.
+
+Older JSON without `isActive` remains importable and is treated as retired with a warning.
 
 ## Debug Checklist
 
@@ -58,6 +67,6 @@ Expected signs from a healthy small scrape:
 
 ## SQLite Tables
 
-- `players`: player identity, profile fields, source URL, raw profile JSON.
+- `players`: player identity, active status (`is_active`), profile fields, source URL, raw profile JSON.
 - `batting_stats`: normalized batting columns plus raw row JSON.
 - `pitching_stats`: normalized pitching columns plus raw row JSON.

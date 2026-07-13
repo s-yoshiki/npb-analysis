@@ -3,6 +3,7 @@ export type PlayerScrapeResult = {
   playerUrl: string;
   playerName: string;
   kanaName: string;
+  isActive: boolean;
   detailInfo: Record<string, string>;
   pitchingStats: Record<string, string>[];
   battingStats: Record<string, string>[];

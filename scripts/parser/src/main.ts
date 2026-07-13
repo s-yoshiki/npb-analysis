@@ -4,7 +4,7 @@ import { fetchHtml } from "./fetch";
 import { parseKanaIndexUrls, parsePlayerUrlsFromKanaPage } from "./parse";
 import { scrapePlayer } from "./scrape";
 import { PlayerScrapeResult } from "./types";
-import { INDEX_ROOT_URL } from "./constants";
+import { ACTIVE_INDEX_ROOT_URL, INDEX_ROOT_URL } from "./constants";
 import { writePlayersToSqlite } from "./db";
 
 type CliOptions = {
@@ -13,6 +13,7 @@ type CliOptions = {
   fromJson?: string;
   kanaLimit?: number;
   limit?: number;
+  scope: "active" | "all";
   outputDir: string;
   delayMs: number;
 };
@@ -23,6 +24,7 @@ function readCliOptions(): CliOptions {
     debug: false,
     delayMs: 250,
     outputDir: process.cwd(),
+    scope: "active",
   };
 
   for (let i = 0; i < args.length; i += 1) {
@@ -49,6 +51,15 @@ function readCliOptions(): CliOptions {
 
     if (arg === "--limit" && next) {
       options.limit = next === "all" ? undefined : Number(next);
+      i += 1;
+      continue;
+    }
+
+    if (arg === "--scope" && next) {
+      if (next !== "active" && next !== "all") {
+        throw new Error("--scope must be either active or all");
+      }
+      options.scope = next;
       i += 1;
       continue;
     }
@@ -85,43 +96,65 @@ async function main() {
 
   if (options.fromJson) {
     const jsonPath = path.resolve(process.cwd(), options.fromJson);
-    const players = JSON.parse(
+    const importedPlayers = JSON.parse(
       fs.readFileSync(jsonPath, "utf-8"),
-    ) as PlayerScrapeResult[];
+    ) as (Omit<PlayerScrapeResult, "isActive"> & { isActive?: boolean })[];
+    const missingStatusCount = importedPlayers.filter(
+      (player) => player.isActive === undefined,
+    ).length;
+    if (missingStatusCount > 0) {
+      console.warn(
+        `Warning: ${missingStatusCount} imported records have no isActive flag; treating them as retired`,
+      );
+    }
+    const players: PlayerScrapeResult[] = importedPlayers.map((player) => ({
+      ...player,
+      isActive: player.isActive ?? false,
+    }));
     const dbPath = writePlayersToSqlite(players, options.dbPath);
     console.log(`Imported ${players.length} player records to ${dbPath}`);
     return;
   }
 
-  const rootHtml = await fetchHtml(INDEX_ROOT_URL);
-  const allKanaPages = parseKanaIndexUrls(rootHtml);
-  const kanaPages =
-    options.kanaLimit === undefined
-      ? allKanaPages
-      : allKanaPages.slice(0, options.kanaLimit);
-  if (options.debug) {
-    console.log(`[debug] index=${INDEX_ROOT_URL}`);
-    console.log(`[debug] kanaPages=${kanaPages.length}/${allKanaPages.length}`);
-    console.log(`[debug] kanaSample=${kanaPages.slice(0, 5).join(", ")}`);
-  }
-
-  if (!kanaPages.length) {
-    throw new Error("Kana index pages not found from index.html");
-  }
-
-  const urls = new Set<string>();
-
-  for (const pageUrl of kanaPages) {
-    console.log(`Scraping ${pageUrl}`);
-    const pageHtml = await fetchHtml(pageUrl);
-    const pageUrls = parsePlayerUrlsFromKanaPage(pageHtml);
-    pageUrls.forEach((playerUrl) => urls.add(playerUrl));
-    console.log(`  found ${pageUrls.length} players (total ${urls.size})`);
+  const collectPlayerUrls = async (indexRootUrl: string) => {
+    const rootHtml = await fetchHtml(indexRootUrl);
+    const allKanaPages = parseKanaIndexUrls(rootHtml, indexRootUrl);
+    const kanaPages =
+      options.kanaLimit === undefined
+        ? allKanaPages
+        : allKanaPages.slice(0, options.kanaLimit);
     if (options.debug) {
-      console.log(`  [debug] sample=${pageUrls.slice(0, 3).join(", ")}`);
+      console.log(`[debug] index=${indexRootUrl}`);
+      console.log(
+        `[debug] kanaPages=${kanaPages.length}/${allKanaPages.length}`,
+      );
+      console.log(`[debug] kanaSample=${kanaPages.slice(0, 5).join(", ")}`);
     }
-    await sleep(options.delayMs);
-  }
+
+    if (!kanaPages.length) {
+      throw new Error(`Kana index pages not found from ${indexRootUrl}`);
+    }
+
+    const urls = new Set<string>();
+    for (const pageUrl of kanaPages) {
+      console.log(`Scraping ${pageUrl}`);
+      const pageHtml = await fetchHtml(pageUrl);
+      const pageUrls = parsePlayerUrlsFromKanaPage(pageHtml, pageUrl);
+      pageUrls.forEach((playerUrl) => urls.add(playerUrl));
+      console.log(`  found ${pageUrls.length} players (total ${urls.size})`);
+      if (options.debug) {
+        console.log(`  [debug] sample=${pageUrls.slice(0, 3).join(", ")}`);
+      }
+      await sleep(options.delayMs);
+    }
+    return urls;
+  };
+
+  const activeUrls = await collectPlayerUrls(ACTIVE_INDEX_ROOT_URL);
+  const urls =
+    options.scope === "active"
+      ? activeUrls
+      : await collectPlayerUrls(INDEX_ROOT_URL);
 
   const players: PlayerScrapeResult[] = [];
   let i = 0;
@@ -132,11 +165,11 @@ async function main() {
     }
 
     console.log(`Fetching player ${i}/${urls.size} ${url}`);
-    const playerData = await scrapePlayer(url);
+    const playerData = await scrapePlayer(url, activeUrls.has(url));
     players.push(playerData);
     if (options.debug) {
       console.log(
-        `  [debug] id=${playerData.id} name=${playerData.playerName || "(empty)"} battingRows=${playerData.battingStats.length} pitchingRows=${playerData.pitchingStats.length} detailKeys=${Object.keys(playerData.detailInfo).length}`,
+        `  [debug] id=${playerData.id} name=${playerData.playerName || "(empty)"} isActive=${playerData.isActive} battingRows=${playerData.battingStats.length} pitchingRows=${playerData.pitchingStats.length} detailKeys=${Object.keys(playerData.detailInfo).length}`,
       );
     }
     await sleep(options.delayMs);

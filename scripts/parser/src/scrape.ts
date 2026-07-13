@@ -50,7 +50,10 @@ function parseStatTable(
   return rows;
 }
 
-export async function scrapePlayer(url: string): Promise<PlayerScrapeResult> {
+export async function scrapePlayer(
+  url: string,
+  isActive: boolean,
+): Promise<PlayerScrapeResult> {
   const { data } = await axios.get(url, {
     headers: {
       "User-Agent": "Mozilla/5.0",
@@ -86,6 +89,7 @@ export async function scrapePlayer(url: string): Promise<PlayerScrapeResult> {
     playerUrl: url,
     playerName,
     kanaName,
+    isActive,
     detailInfo,
     pitchingStats,
     battingStats,
