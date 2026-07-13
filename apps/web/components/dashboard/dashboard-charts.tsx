@@ -23,16 +23,16 @@ export function SeasonSparkline({ trends }: { trends: SeasonTrend[] }) {
     .join(" ");
 
   return (
-    <Card className="bg-card shadow-sm transition-all duration-300 hover:shadow-md">
+    <Card className="bg-card/85">
       <CardHeader>
-        <CardTitle>年度別の登録推移</CardTitle>
+        <CardTitle className="font-heading text-xl font-black">年度別の登録推移</CardTitle>
         <CardDescription>
           打撃・投手成績が記録された選手数の合計
         </CardDescription>
       </CardHeader>
       <CardContent>
         {recent.length ? (
-          <div className="h-64 rounded-lg border bg-muted/20">
+          <div className="h-64 overflow-hidden rounded-xl border border-border/70 bg-[linear-gradient(180deg,var(--muted)_0%,transparent_100%)]">
             <svg
               viewBox="0 0 100 100"
               preserveAspectRatio="none"
@@ -41,7 +41,7 @@ export function SeasonSparkline({ trends }: { trends: SeasonTrend[] }) {
             >
               <polyline
                 points={points}
-                className="fill-none stroke-primary [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:3] [vector-effect:non-scaling-stroke]"
+                className="fill-none stroke-primary drop-shadow-sm [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:3] [vector-effect:non-scaling-stroke]"
               />
             </svg>
             <div className="flex justify-between px-4 text-xs font-bold text-muted-foreground">
@@ -63,9 +63,9 @@ export function TeamDistribution({ teams }: { teams: TeamCount[] }) {
   const max = Math.max(1, ...teams.map((team) => team.players));
 
   return (
-    <Card className="bg-card shadow-sm transition-all duration-300 hover:shadow-md">
+    <Card className="bg-card/85">
       <CardHeader>
-        <CardTitle>球団別の選手数</CardTitle>
+        <CardTitle className="font-heading text-xl font-black">球団別の選手数</CardTitle>
         <CardDescription>成績表に登場する球団名で集計</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-3">
@@ -77,9 +77,9 @@ export function TeamDistribution({ teams }: { teams: TeamCount[] }) {
             <span className="overflow-hidden text-ellipsis whitespace-nowrap font-bold">
               {team.team}
             </span>
-            <span className="h-2.5 overflow-hidden rounded-full bg-muted">
+            <span className="h-2.5 overflow-hidden rounded-full bg-muted ring-1 ring-border/60">
               <span
-                className="block h-full rounded-full bg-chart-2"
+                className="block h-full rounded-full bg-gradient-to-r from-primary to-chart-2"
                 style={{ width: `${(team.players / max) * 100}%` }}
               />
             </span>

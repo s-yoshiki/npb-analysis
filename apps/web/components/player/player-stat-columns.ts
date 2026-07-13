@@ -25,6 +25,8 @@ export const battingColumns: StatColumn<BattingStatRow>[] = [
   { key: "batting_average", label: "打率", type: "rate" },
   { key: "slugging_percentage", label: "長打率", type: "rate" },
   { key: "on_base_percentage", label: "出塁率", type: "rate" },
+  { key: "ops", label: "OPS", type: "rate" },
+  { key: "is_qualified", label: "規定打席", type: "qualification" },
 ];
 
 export const pitchingColumns: StatColumn<PitchingStatRow>[] = [
@@ -53,4 +55,5 @@ export const pitchingColumns: StatColumn<PitchingStatRow>[] = [
   { key: "earned_runs", label: "自責点", type: "number" },
   { key: "era", label: "防御率", type: "number", digits: 2 },
   { key: "whip", label: "WHIP", type: "number", digits: 2 },
+  { key: "is_qualified", label: "規定投球回", type: "qualification" },
 ];
