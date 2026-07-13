@@ -7,9 +7,9 @@ import { createPlayerDatabaseWriter } from "./db";
 type CliOptions = {
   dbPath?: string;
   debug: boolean;
+  includeRetired: boolean;
   kanaLimit?: number;
   limit?: number;
-  scope: "active" | "all";
   delayMs: number;
 };
 
@@ -18,7 +18,7 @@ function readCliOptions(): CliOptions {
   const options: CliOptions = {
     debug: false,
     delayMs: 250,
-    scope: "active",
+    includeRetired: false,
   };
 
   for (let i = 0; i < args.length; i += 1) {
@@ -47,8 +47,18 @@ function readCliOptions(): CliOptions {
       if (next !== "active" && next !== "all") {
         throw new Error("--scope must be either active or all");
       }
-      options.scope = next;
+      options.includeRetired = next === "all";
       i += 1;
+      continue;
+    }
+
+    if (arg === "--include-retired") {
+      options.includeRetired = true;
+      continue;
+    }
+
+    if (arg === "--active-only") {
+      options.includeRetired = false;
       continue;
     }
 
@@ -114,10 +124,9 @@ async function main() {
   };
 
   const activeUrls = await collectPlayerUrls(ACTIVE_INDEX_ROOT_URL);
-  const urls =
-    options.scope === "active"
-      ? activeUrls
-      : await collectPlayerUrls(INDEX_ROOT_URL);
+  const urls = options.includeRetired
+    ? await collectPlayerUrls(INDEX_ROOT_URL)
+    : activeUrls;
 
   const sortedUrls = [...urls].sort();
   const urlsToScrape =

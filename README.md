@@ -30,7 +30,7 @@ pnpm --filter npb-analysis run scrape -- --delay 300
 現役・引退済みを含む全選手を取得する場合:
 
 ```sh
-pnpm --filter npb-analysis run scrape -- --scope all --delay 300
+pnpm --filter npb-analysis run scrape -- --include-retired --delay 300
 ```
 
 少数件だけデバッグする場合:

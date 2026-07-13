@@ -8,7 +8,7 @@ By default, the parser starts at the active-player index:
 https://npb.jp/bis/players/active/index.html
 ```
 
-It extracts kana index pages, then player detail URLs, then profile and stat tables for each player. Use `--scope all` to scrape both active and retired players; active status is determined by membership in the active-player index.
+It extracts kana index pages, then player detail URLs, then profile and stat tables for each player. Use `--include-retired` to scrape both active and retired players; active status is determined by membership in the active-player index.
 
 ## Commands
 
@@ -33,13 +33,15 @@ pnpm --filter npb-analysis run scrape -- --delay 300
 Run a full scrape including retired players:
 
 ```sh
-pnpm --filter npb-analysis run scrape -- --scope all --delay 300
+pnpm --filter npb-analysis run scrape -- --include-retired --delay 300
 ```
 
 ## CLI Options
 
 - `--limit <number|all>`: maximum player detail pages to scrape.
-- `--scope <active|all>`: scrape active players only (default), or all players.
+- `--include-retired`: scrape active and retired players.
+- `--active-only`: scrape active players only (default).
+- `--scope <active|all>`: legacy equivalent of the two flags above.
 - `--kana-limit <number|all>`: maximum kana index pages to scan.
 - `--delay <ms>`: delay between requests.
 - `--debug`: print extracted URL samples and parsed row counts.
