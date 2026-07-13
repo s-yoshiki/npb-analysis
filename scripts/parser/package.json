@@ -2,7 +2,7 @@
   "name": "npb-analysis",
   "private": true,
   "scripts": {
-    "dev": "tsx src/main.ts --limit 100",
+    "dev": "tsx src/main.ts --limit 1000",
     "scrape": "tsx src/main.ts --limit all",
     "import-json": "tsx src/main.ts --from-json player_data.json"
   },
@@ -15,6 +15,6 @@
     "@types/cheerio": "^0.22.30",
     "@types/node": "^22.15.3",
     "tsx": "^4.22.3",
-    "typescript": "5.9.2"
+    "typescript": "6.0.3"
   }
 }
