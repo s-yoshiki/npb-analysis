@@ -42,3 +42,8 @@ yarn-error.log*
 # Generated NPB data
 apps/web/data/*.sqlite
 apps/web/data/*.sqlite-*
+
+
+.pnpm-store
+*.sqlite
+*.sqlite-*

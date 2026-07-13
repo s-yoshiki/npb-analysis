@@ -11,6 +11,12 @@ import {
   type RankingScope,
   type RankingSourceRow,
 } from "./rankings";
+import {
+  buildPlayerLeagueRanks,
+  type LeagueRankSourceRow,
+  type PlayerLeagueRank,
+} from "./player-league-ranks";
+export type { PlayerLeagueRank } from "./player-league-ranks";
 
 const DB_PATH = path.join(process.cwd(), "data", "npb.sqlite");
 
@@ -641,8 +647,10 @@ function getRankingSources(db: DatabaseSync): {
       SELECT
         b.player_id, p.name, p.kana, b.season, b.team, b.games,
         p.bats_throws, p.career, p.draft, p.birth_year, p.height_cm,
-        b.plate_appearances, b.at_bats, b.hits, b.home_runs, b.total_bases,
-        b.rbi, b.steals, b.sacrifice_flies, b.walks, b.hit_by_pitch
+        b.plate_appearances, b.at_bats, b.runs, b.hits, b.doubles, b.triples,
+        b.home_runs, b.total_bases, b.rbi, b.steals, b.caught_stealing,
+        b.sacrifice_hits, b.sacrifice_flies, b.walks, b.hit_by_pitch,
+        b.strikeouts, b.grounded_into_double_plays
       FROM batting_stats b
       JOIN players p ON p.id = b.player_id
       WHERE b.season IS NOT NULL
@@ -655,8 +663,11 @@ function getRankingSources(db: DatabaseSync): {
       SELECT
         pi.player_id, p.name, p.kana, pi.season, pi.team, pi.games,
         p.bats_throws, p.career, p.draft, p.birth_year, p.height_cm,
-        pi.wins, pi.losses, pi.saves, pi.holds, pi.innings,
-        pi.hits_allowed, pi.walks_allowed, pi.strikeouts, pi.earned_runs
+        pi.wins, pi.losses, pi.saves, pi.holds, pi.hold_points,
+        pi.complete_games, pi.shutouts, pi.no_walk_complete_games,
+        pi.batters_faced, pi.innings, pi.hits_allowed, pi.home_runs_allowed,
+        pi.walks_allowed, pi.hit_by_pitch, pi.strikeouts, pi.wild_pitches,
+        pi.balks, pi.runs_allowed, pi.earned_runs
       FROM pitching_stats pi
       JOIN players p ON p.id = pi.player_id
       WHERE pi.season IS NOT NULL
@@ -739,48 +750,16 @@ export function getRankingTeams(options: {
   }
 }
 
-export type PlayerLeagueRank = {
-  season: number;
-  league: League;
-  metrics: Partial<Record<RankingMetric, number>>;
-};
-
 export function getPlayerLeagueRanks(playerId: string): PlayerLeagueRank[] {
   const db = openDb();
   if (!db) return [];
   try {
     const sources = getRankingSources(db);
-    const seasons = new Set<number>();
-    for (const row of [...sources.battingRows, ...sources.pitchingRows]) {
-      if (row.player_id === playerId) seasons.add(row.season);
-    }
-    const result: PlayerLeagueRank[] = [];
-    const metrics: { category: RankingCategory; metric: RankingMetric }[] = [
-      { category: "batting", metric: "hits" },
-      { category: "batting", metric: "home_runs" },
-      { category: "batting", metric: "ops" },
-      { category: "pitching", metric: "wins" },
-      { category: "pitching", metric: "strikeouts" },
-      { category: "pitching", metric: "era" },
-    ];
-    for (const season of [...seasons].sort((a, b) => b - a)) {
-      for (const league of ["central", "pacific"] as const) {
-        const item: PlayerLeagueRank = { season, league, metrics: {} };
-        for (const definition of metrics) {
-          const rows = buildRankings({
-            ...sources,
-            ...definition,
-            league,
-            scope: "season",
-            season,
-          });
-          const player = rows.find((row) => row.playerId === playerId);
-          if (player) item.metrics[definition.metric] = player.rank;
-        }
-        if (Object.keys(item.metrics).length) result.push(item);
-      }
-    }
-    return result;
+    return buildPlayerLeagueRanks({
+      battingRows: sources.battingRows as LeagueRankSourceRow[],
+      pitchingRows: sources.pitchingRows as LeagueRankSourceRow[],
+      playerId,
+    });
   } finally {
     db.close();
   }

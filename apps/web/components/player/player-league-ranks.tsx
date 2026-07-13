@@ -1,5 +1,11 @@
+"use client";
+
 import { formatLeague } from "@/lib/league";
-import type { PlayerLeagueRank } from "@/lib/npb-db";
+import {
+  leagueRankMetrics,
+  type LeagueRankCategory,
+  type PlayerLeagueRank,
+} from "@/lib/player-league-ranks";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -16,16 +22,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-
-const metrics = [
-  ["hits", "安打"],
-  ["home_runs", "本塁打"],
-  ["ops", "OPS"],
-  ["wins", "勝利"],
-  ["strikeouts", "奪三振"],
-  ["era", "防御率"],
-] as const;
 
 function rankClass(rank: number | undefined) {
   if (rank === 1) {
@@ -40,7 +38,78 @@ function rankClass(rank: number | undefined) {
   return "";
 }
 
+function RankTable({
+  category,
+  rows,
+}: {
+  category: LeagueRankCategory;
+  rows: PlayerLeagueRank[];
+}) {
+  const categoryRows = rows.filter((row) => row.category === category);
+  const metrics = leagueRankMetrics[category];
+
+  if (!categoryRows.length) {
+    return (
+      <p className="py-10 text-center text-sm text-muted-foreground">
+        リーグ順位を算出できる成績がありません。
+      </p>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-xl border border-border/80">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="sticky left-0 z-20 min-w-20 bg-muted">
+              年度
+            </TableHead>
+            <TableHead className="min-w-28">リーグ</TableHead>
+            {metrics.map((metric) => (
+              <TableHead className="min-w-20 text-right" key={metric.key}>
+                {metric.label}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {categoryRows.map((row) => (
+            <TableRow
+              className="group/row"
+              key={`${row.category}:${row.season}:${row.league}`}
+            >
+              <TableCell className="sticky left-0 z-10 bg-card font-bold group-hover/row:bg-muted">
+                {row.season}
+              </TableCell>
+              <TableCell>{formatLeague(row.league)}</TableCell>
+              {metrics.map((metric) => (
+                <TableCell
+                  className={cn(
+                    "text-right tabular-nums",
+                    rankClass(row.metrics[metric.key]),
+                  )}
+                  key={metric.key}
+                >
+                  {row.metrics[metric.key]
+                    ? `${row.metrics[metric.key]}位`
+                    : "-"}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
 export function PlayerLeagueRanks({ rows }: { rows: PlayerLeagueRank[] }) {
+  const battingCount = rows.filter((row) => row.category === "batting").length;
+  const pitchingCount = rows.filter(
+    (row) => row.category === "pitching",
+  ).length;
+  const initialCategory = battingCount ? "batting" : "pitching";
+
   return (
     <Card className="bg-card/85">
       <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -52,49 +121,23 @@ export function PlayerLeagueRanks({ rows }: { rows: PlayerLeagueRank[] }) {
             DB収録選手内で集計。率系指標は規定到達者を対象
           </CardDescription>
         </div>
-        <Badge variant="secondary">{rows.length} seasons</Badge>
+        <Badge variant="secondary">{rows.length} records</Badge>
       </CardHeader>
       <CardContent>
-        {rows.length ? (
-          <div className="overflow-x-auto rounded-xl border border-border/80">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>年度</TableHead>
-                  <TableHead>リーグ</TableHead>
-                  {metrics.map(([, label]) => (
-                    <TableHead className="text-right" key={label}>
-                      {label}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((row) => (
-                  <TableRow key={`${row.season}:${row.league}`}>
-                    <TableCell className="font-bold">{row.season}</TableCell>
-                    <TableCell>{formatLeague(row.league)}</TableCell>
-                    {metrics.map(([key]) => (
-                      <TableCell
-                        className={cn(
-                          "text-right tabular-nums",
-                          rankClass(row.metrics[key]),
-                        )}
-                        key={key}
-                      >
-                        {row.metrics[key] ? `${row.metrics[key]}位` : "-"}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        ) : (
-          <p className="py-10 text-center text-sm text-muted-foreground">
-            リーグ順位を算出できる成績がありません。
-          </p>
-        )}
+        <Tabs defaultValue={initialCategory}>
+          <TabsList className="mb-4 grid h-10 w-full max-w-sm grid-cols-2">
+            <TabsTrigger value="batting">打撃成績 ({battingCount})</TabsTrigger>
+            <TabsTrigger value="pitching">
+              投手成績 ({pitchingCount})
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="batting">
+            <RankTable category="batting" rows={rows} />
+          </TabsContent>
+          <TabsContent value="pitching">
+            <RankTable category="pitching" rows={rows} />
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
