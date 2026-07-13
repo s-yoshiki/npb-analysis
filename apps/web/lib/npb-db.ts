@@ -38,6 +38,8 @@ export type PlayersPage = {
   totalPages: number;
 };
 
+export type PlayerFilters = RankingProfileFilters;
+
 export type Summary = {
   players: number;
   battingRows: number;
@@ -230,17 +232,70 @@ export function getSummary(): Summary {
   }
 }
 
-function getPlayerListWhere(query: string) {
-  const normalizedQuery = query.trim();
+function getPlayerListWhere(query: string, filters: PlayerFilters = {}) {
+  const conditions: string[] = [];
+  const params: (number | string)[] = [];
+  const name = query.trim() || filters.name?.trim();
+
+  if (name) {
+    conditions.push("(p.name LIKE ? ESCAPE '\\' OR p.kana LIKE ? ESCAPE '\\')");
+    params.push(likeQuery(name), likeQuery(name));
+  }
+  if (filters.throws) {
+    conditions.push("p.bats_throws LIKE ?");
+    params.push(`%${filters.throws === "right" ? "右投" : "左投"}%`);
+  }
+  if (filters.bats) {
+    const label =
+      filters.bats === "right"
+        ? "右打"
+        : filters.bats === "left"
+          ? "左打"
+          : "両打";
+    conditions.push("p.bats_throws LIKE ?");
+    params.push(`%${label}%`);
+  }
+  if (filters.school?.trim()) {
+    conditions.push("p.career LIKE ? ESCAPE '\\'");
+    params.push(likeQuery(filters.school.trim()));
+  }
+  if (filters.draftYearMin !== undefined) {
+    conditions.push("CAST(substr(p.draft, 1, 4) AS INTEGER) >= ?");
+    params.push(filters.draftYearMin);
+  }
+  if (filters.draftYearMax !== undefined) {
+    conditions.push("CAST(substr(p.draft, 1, 4) AS INTEGER) <= ?");
+    params.push(filters.draftYearMax);
+  }
+  if (filters.draftRank === "outside") {
+    conditions.push("p.draft LIKE '%ドラフト外%'");
+  } else if (filters.draftRank) {
+    conditions.push("(p.draft LIKE ? OR p.draft LIKE ?)");
+    params.push(
+      `%ドラフト%${filters.draftRank}位%`,
+      `%ドラフト%${filters.draftRank}巡目%`,
+    );
+  }
+  if (filters.birthYearMin !== undefined) {
+    conditions.push("p.birth_year >= ?");
+    params.push(filters.birthYearMin);
+  }
+  if (filters.birthYearMax !== undefined) {
+    conditions.push("p.birth_year <= ?");
+    params.push(filters.birthYearMax);
+  }
+  if (filters.heightMin !== undefined) {
+    conditions.push("p.height_cm >= ?");
+    params.push(filters.heightMin);
+  }
+  if (filters.heightMax !== undefined) {
+    conditions.push("p.height_cm <= ?");
+    params.push(filters.heightMax);
+  }
 
   return {
-    normalizedQuery,
-    params: normalizedQuery
-      ? [likeQuery(normalizedQuery), likeQuery(normalizedQuery)]
-      : [],
-    whereSql: normalizedQuery
-      ? "WHERE p.name LIKE ? ESCAPE '\\' OR p.kana LIKE ? ESCAPE '\\'"
-      : "",
+    params,
+    whereSql: conditions.length ? `WHERE ${conditions.join(" AND ")}` : "",
   };
 }
 
@@ -248,10 +303,12 @@ export function getPlayersPage({
   page,
   pageSize,
   query,
+  filters,
 }: {
   page: number;
   pageSize: number;
   query: string;
+  filters?: PlayerFilters;
 }): PlayersPage {
   const db = openDb();
   if (!db) {
@@ -264,7 +321,7 @@ export function getPlayersPage({
     };
   }
 
-  const { params, whereSql } = getPlayerListWhere(query);
+  const { params, whereSql } = getPlayerListWhere(query, filters);
   const safePageSize = Math.max(1, Math.min(pageSize, 100));
   const requestedPage = Math.max(1, page);
 
