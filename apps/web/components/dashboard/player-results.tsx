@@ -21,7 +21,7 @@ import type { PlayerListRow } from "@/lib/npb-db";
 
 function MobileMetric({ label, value }: { label: string; value: string }) {
   return (
-    <span className="rounded-md bg-muted px-2 py-2">
+    <span className="rounded-md border border-foreground/10 bg-muted/60 px-2 py-2">
       <span className="block text-[11px] font-bold text-muted-foreground">
         {label}
       </span>
@@ -35,7 +35,7 @@ function PlayerMobileCards({ players }: { players: PlayerListRow[] }) {
     <div className="grid gap-3 md:hidden">
       {players.map((player) => (
         <Link href={`/players/${player.id}`} key={player.id}>
-          <Card className="shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+          <Card className="border-foreground/15 bg-card/80 shadow-none transition-colors hover:bg-card">
             <CardContent className="p-4">
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
@@ -72,7 +72,7 @@ function PlayerMobileCards({ players }: { players: PlayerListRow[] }) {
 
 function PlayerDesktopTable({ players }: { players: PlayerListRow[] }) {
   return (
-    <div className="hidden md:block">
+    <div className="hidden overflow-hidden rounded-md border border-foreground/10 md:block">
       <Table>
         <TableHeader>
           <TableRow>
@@ -156,17 +156,17 @@ export function PlayerResults({
   total?: number;
 }) {
   return (
-    <Card className="bg-card shadow-sm">
+    <Card className="border-foreground/15 bg-card/80 shadow-none">
       <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <CardTitle>選手一覧</CardTitle>
+          <CardTitle className="font-heading text-2xl font-black">選手一覧</CardTitle>
           <CardDescription>
             {description ??
               (query ? `「${query}」の検索結果` : "出場数順に表示")}
           </CardDescription>
         </div>
         <Badge variant="secondary">
-          {formatNumber(total ?? players.length)} rows
+          {formatNumber(total ?? players.length)} players
         </Badge>
       </CardHeader>
       <CardContent className="pt-2">

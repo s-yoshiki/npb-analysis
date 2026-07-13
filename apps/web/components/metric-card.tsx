@@ -10,15 +10,15 @@ export function MetricCard({
   helper: string;
 }) {
   return (
-    <Card className="bg-card shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
-      <CardContent className="grid gap-2.5 py-5">
-        <span className="text-xs font-extrabold uppercase tracking-[0.08em] text-muted-foreground">
+    <Card className="group border-foreground/15 bg-card/75 shadow-none transition-colors hover:bg-card">
+      <CardContent className="grid gap-3 px-5 py-6">
+        <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-muted-foreground">
           {label}
         </span>
-        <strong className="text-3xl leading-none tracking-tight sm:text-4xl">
+        <strong className="font-heading text-3xl leading-none tracking-[-0.04em] sm:text-4xl">
           {value}
         </strong>
-        <small className="text-sm text-muted-foreground">{helper}</small>
+        <small className="border-t border-foreground/10 pt-3 text-xs text-muted-foreground">{helper}</small>
       </CardContent>
     </Card>
   );

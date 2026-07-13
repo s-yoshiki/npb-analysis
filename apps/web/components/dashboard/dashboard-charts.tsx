@@ -23,16 +23,16 @@ export function SeasonSparkline({ trends }: { trends: SeasonTrend[] }) {
     .join(" ");
 
   return (
-    <Card className="bg-card shadow-sm transition-all duration-300 hover:shadow-md">
+    <Card className="border-foreground/15 bg-card/80 shadow-none">
       <CardHeader>
-        <CardTitle>年度別の登録推移</CardTitle>
+        <CardTitle className="font-heading text-xl font-black">年度別の登録推移</CardTitle>
         <CardDescription>
           打撃・投手成績が記録された選手数の合計
         </CardDescription>
       </CardHeader>
       <CardContent>
         {recent.length ? (
-          <div className="h-64 rounded-lg border bg-muted/20">
+          <div className="h-64 rounded-md border border-foreground/10 bg-muted/30">
             <svg
               viewBox="0 0 100 100"
               preserveAspectRatio="none"
@@ -63,9 +63,9 @@ export function TeamDistribution({ teams }: { teams: TeamCount[] }) {
   const max = Math.max(1, ...teams.map((team) => team.players));
 
   return (
-    <Card className="bg-card shadow-sm transition-all duration-300 hover:shadow-md">
+    <Card className="border-foreground/15 bg-card/80 shadow-none">
       <CardHeader>
-        <CardTitle>球団別の選手数</CardTitle>
+        <CardTitle className="font-heading text-xl font-black">球団別の選手数</CardTitle>
         <CardDescription>成績表に登場する球団名で集計</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-3">

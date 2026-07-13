@@ -24,6 +24,7 @@ import {
   type BattingStatRow,
   type PitchingStatRow,
 } from "@/lib/npb-db";
+import { Button } from "@/components/ui/button"
 
 export const dynamic = "force-dynamic";
 
@@ -94,31 +95,32 @@ export default async function PlayerPage({ params }: PageProps) {
   const pitchingYears = pitching.filter((row) => row.season !== null).length;
 
   return (
-    <AppShell label="Player Detail">
-      <Card className="shadow-sm">
-        <CardContent className="px-5 py-8 sm:px-8 sm:py-10">
+    <AppShell label="Player File">
+      <Card className="overflow-hidden border-foreground/15 bg-foreground text-background shadow-none">
+        <CardContent className="px-6 py-8 sm:px-10 sm:py-12">
           <Link
-            className={buttonVariants({ className: "mb-8", variant: "ghost" })}
+            className={buttonVariants({ className: "mb-10 text-background/65 hover:bg-background/10 hover:text-background", variant: "ghost" })}
             href="/players"
           >
             一覧へ戻る
           </Link>
+          <Button>AAA</Button>
           <div className="grid items-end gap-6 md:grid-cols-[1fr_auto]">
             <div>
-              <Badge className="mb-4" variant="outline">
-                Player Detail
+              <Badge className="mb-5 border-background/20 bg-background/10 text-background" variant="outline">
+                Player file / {profile.id}
               </Badge>
-              <h1 className="text-5xl font-black leading-[0.96] tracking-tight sm:text-7xl">
+              <h1 className="font-heading text-5xl font-black leading-[0.96] tracking-[-0.05em] sm:text-7xl">
                 {profile.name}
               </h1>
-              <p className="mt-3 text-lg text-muted-foreground">
+              <p className="mt-4 text-sm tracking-[.08em] text-background/55 sm:text-base">
                 {profile.kana || profile.id}
               </p>
             </div>
             <a
               className={buttonVariants({
-                className: "w-full md:w-auto",
                 variant: "outline",
+                className: "w-full border-background/20 bg-transparent text-background hover:bg-background/10 hover:text-background md:w-auto",
               })}
               href={profile.player_url}
               target="_blank"

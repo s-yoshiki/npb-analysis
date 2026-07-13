@@ -55,10 +55,10 @@ export function PlayerStatTable<
   const secondaryColumn = columns[1];
 
   return (
-    <Card className="bg-card shadow-sm">
+    <Card className="border-foreground/15 bg-card/80 shadow-none">
       <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <CardTitle>{title}</CardTitle>
+          <CardTitle className="font-heading text-2xl font-black">{title}</CardTitle>
           <CardDescription>抽出した全主要列を表示</CardDescription>
         </div>
         <Badge variant="secondary">{rows.length} rows</Badge>
@@ -101,7 +101,7 @@ export function PlayerStatTable<
                 </Card>
               ))}
             </div>
-            <div className="hidden md:block">
+            <div className="hidden overflow-x-auto rounded-md border border-foreground/10 md:block">
               <Table>
                 <TableHeader>
                   <TableRow>

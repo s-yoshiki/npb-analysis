@@ -36,18 +36,18 @@ export default async function PlayersPage({ searchParams }: PageProps) {
   const end = Math.min(result.page * result.pageSize, result.total);
 
   return (
-    <AppShell label="Players">
-      <Card className="shadow-sm">
-        <CardContent className="px-5 py-8 sm:px-8 sm:py-10">
-          <Badge className="mb-4" variant="outline">
-            Player Search
+    <AppShell label="Player Index">
+      <Card className="border-foreground/15 bg-card/80 shadow-none">
+        <CardContent className="px-6 py-8 sm:px-10 sm:py-12">
+          <Badge className="mb-5 border-primary/25 bg-primary/8 text-primary" variant="outline">
+            Player archive
           </Badge>
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,440px)] lg:items-end">
             <div>
-              <h1 className="max-w-3xl text-4xl font-black leading-[0.98] tracking-tight sm:text-6xl">
-                選手一覧・検索
+              <h1 className="max-w-3xl font-heading text-4xl font-black leading-[1.05] tracking-[-0.04em] sm:text-6xl">
+                選手を探す
               </h1>
-              <p className="mt-5 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
                 選手名・かなで検索し、通算成績の概要から各選手の詳細ページへ移動できます。
               </p>
             </div>

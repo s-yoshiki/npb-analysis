@@ -38,9 +38,9 @@ function useChartRows(data: ChartPoint[]) {
 
 function EmptyChart({ label }: { label: string }) {
   return (
-    <Card className="bg-card shadow-sm">
+    <Card className="border-foreground/15 bg-card/80 shadow-none">
       <CardHeader>
-        <CardTitle>{label}</CardTitle>
+        <CardTitle className="font-heading text-xl font-black">{label}</CardTitle>
       </CardHeader>
       <CardContent>
         <p className="py-12 text-center text-sm text-muted-foreground">
@@ -59,9 +59,9 @@ export function BattingTrendChart({ data }: { data: ChartPoint[] }) {
   }
 
   return (
-    <Card className="bg-card shadow-sm transition-all duration-300 hover:shadow-md">
+    <Card className="border-foreground/15 bg-card/80 shadow-none">
       <CardHeader>
-        <CardTitle>打撃推移</CardTitle>
+        <CardTitle className="font-heading text-xl font-black">打撃推移</CardTitle>
         <CardDescription>安打・本塁打・打点の年度別推移</CardDescription>
       </CardHeader>
       <CardContent>
@@ -122,9 +122,9 @@ export function PitchingTrendChart({ data }: { data: ChartPoint[] }) {
   }
 
   return (
-    <Card className="bg-card shadow-sm transition-all duration-300 hover:shadow-md">
+    <Card className="border-foreground/15 bg-card/80 shadow-none">
       <CardHeader>
-        <CardTitle>投手推移</CardTitle>
+        <CardTitle className="font-heading text-xl font-black">投手推移</CardTitle>
         <CardDescription>勝利・奪三振・防御率の年度別推移</CardDescription>
       </CardHeader>
       <CardContent>
