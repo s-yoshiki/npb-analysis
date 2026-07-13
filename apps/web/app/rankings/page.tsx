@@ -63,7 +63,9 @@ export default async function RankingsPage({ searchParams }: PageProps) {
         ? params.throws
         : undefined,
     bats:
-      params.bats === "right" || params.bats === "left" || params.bats === "both"
+      params.bats === "right" ||
+      params.bats === "left" ||
+      params.bats === "both"
         ? params.bats
         : undefined,
     school: params.school?.trim() || undefined,
@@ -92,14 +94,14 @@ export default async function RankingsPage({ searchParams }: PageProps) {
     <AppShell label="Rankings">
       <Card className="relative bg-card/85">
         <div className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-primary to-chart-2" />
-        <CardContent className="px-6 py-8 sm:px-10 sm:py-12">
+        <CardContent className="px-3 py-4 sm:px-5 sm:py-6">
           <Badge
             className="mb-5 border-primary/25 bg-primary/8 text-primary"
             variant="outline"
           >
             League leaderboard
           </Badge>
-          <h1 className="font-heading text-3xl font-black tracking-[-0.04em] sm:text-5xl">
+          <h1 className="font-heading text-3xl font-black tracking-[-0.04em] sm:text-3xl">
             ランキング
           </h1>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">

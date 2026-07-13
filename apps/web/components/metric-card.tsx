@@ -19,7 +19,9 @@ export function MetricCard({
         <strong className="font-heading text-3xl leading-none tracking-[-0.04em] sm:text-4xl">
           {value}
         </strong>
-        <small className="border-t border-border/70 pt-3 text-xs font-medium text-muted-foreground">{helper}</small>
+        <small className="border-t border-border/70 pt-3 text-xs font-medium text-muted-foreground">
+          {helper}
+        </small>
       </CardContent>
     </Card>
   );

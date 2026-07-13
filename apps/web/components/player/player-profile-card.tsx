@@ -8,7 +8,9 @@ export function PlayerProfileCard({ detailJson }: { detailJson: string }) {
   return (
     <Card className="bg-card/85">
       <CardHeader>
-        <CardTitle className="font-heading text-xl font-black">プロフィール</CardTitle>
+        <CardTitle className="font-heading text-xl font-black">
+          プロフィール
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <dl className="grid gap-3">

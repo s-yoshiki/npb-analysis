@@ -2,7 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { LoaderCircle, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import {
+  LoaderCircle,
+  RotateCcw,
+  Search,
+  SlidersHorizontal,
+} from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -212,7 +217,11 @@ export function RankingFilterForm({
                 setCategory(next);
                 setMetric(nextMetric);
                 setTeam("");
-                navigate({ category: next, metric: nextMetric, team: undefined });
+                navigate({
+                  category: next,
+                  metric: nextMetric,
+                  team: undefined,
+                });
               }}
               value={category}
             >
@@ -359,7 +368,11 @@ export function RankingFilterForm({
           </label>
           <label className="grid gap-1.5 text-xs font-bold text-muted-foreground">
             投げ腕
-            <select className="select-field" defaultValue={filters.throws ?? ""} name="throws">
+            <select
+              className="select-field"
+              defaultValue={filters.throws ?? ""}
+              name="throws"
+            >
               <option value="">指定なし</option>
               <option value="right">右投げ</option>
               <option value="left">左投げ</option>
@@ -367,7 +380,11 @@ export function RankingFilterForm({
           </label>
           <label className="grid gap-1.5 text-xs font-bold text-muted-foreground">
             打席
-            <select className="select-field" defaultValue={filters.bats ?? ""} name="bats">
+            <select
+              className="select-field"
+              defaultValue={filters.bats ?? ""}
+              name="bats"
+            >
               <option value="">指定なし</option>
               <option value="right">右打ち</option>
               <option value="left">左打ち</option>
@@ -395,13 +412,19 @@ export function RankingFilterForm({
           />
           <label className="grid gap-1.5 text-xs font-bold text-muted-foreground">
             ドラフト順位
-            <select className="select-field" defaultValue={filters.draftRank ?? ""} name="draftRank">
+            <select
+              className="select-field"
+              defaultValue={filters.draftRank ?? ""}
+              name="draftRank"
+            >
               <option value="">指定なし</option>
-              {Array.from({ length: 10 }, (_, index) => index + 1).map((rank) => (
-                <option key={rank} value={rank}>
-                  {rank}位／{rank}巡目
-                </option>
-              ))}
+              {Array.from({ length: 10 }, (_, index) => index + 1).map(
+                (rank) => (
+                  <option key={rank} value={rank}>
+                    {rank}位／{rank}巡目
+                  </option>
+                ),
+              )}
               <option value="outside">ドラフト外</option>
             </select>
           </label>
@@ -438,7 +461,11 @@ export function RankingFilterForm({
           disabled={isPending}
           type="submit"
         >
-          {isPending ? <LoaderCircle className="size-4 animate-spin" /> : <Search className="size-4" />}
+          {isPending ? (
+            <LoaderCircle className="size-4 animate-spin" />
+          ) : (
+            <Search className="size-4" />
+          )}
           条件を適用
         </button>
       </div>

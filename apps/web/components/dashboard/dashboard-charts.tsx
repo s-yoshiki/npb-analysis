@@ -25,7 +25,9 @@ export function SeasonSparkline({ trends }: { trends: SeasonTrend[] }) {
   return (
     <Card className="bg-card/85">
       <CardHeader>
-        <CardTitle className="font-heading text-xl font-black">年度別の登録推移</CardTitle>
+        <CardTitle className="font-heading text-xl font-black">
+          年度別の登録推移
+        </CardTitle>
         <CardDescription>
           打撃・投手成績が記録された選手数の合計
         </CardDescription>
@@ -65,7 +67,9 @@ export function TeamDistribution({ teams }: { teams: TeamCount[] }) {
   return (
     <Card className="bg-card/85">
       <CardHeader>
-        <CardTitle className="font-heading text-xl font-black">球団別の選手数</CardTitle>
+        <CardTitle className="font-heading text-xl font-black">
+          球団別の選手数
+        </CardTitle>
         <CardDescription>成績表に登場する球団名で集計</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-3">

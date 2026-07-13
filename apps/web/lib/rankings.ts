@@ -179,7 +179,10 @@ function matchesProfile(
       return false;
     }
   }
-  if (filters.throws && !row.bats_throws?.includes(filters.throws === "right" ? "右投" : "左投")) {
+  if (
+    filters.throws &&
+    !row.bats_throws?.includes(filters.throws === "right" ? "右投" : "左投")
+  ) {
     return false;
   }
   const battingLabel =
@@ -193,37 +196,53 @@ function matchesProfile(
   if (battingLabel && !row.bats_throws?.includes(battingLabel)) return false;
   if (
     filters.school &&
-    !row.career?.toLocaleLowerCase("ja").includes(filters.school.toLocaleLowerCase("ja"))
+    !row.career
+      ?.toLocaleLowerCase("ja")
+      .includes(filters.school.toLocaleLowerCase("ja"))
   ) {
     return false;
   }
 
   const year = draftYear(row.draft);
-  if (filters.draftYearMin !== undefined && (year === null || year < filters.draftYearMin)) return false;
-  if (filters.draftYearMax !== undefined && (year === null || year > filters.draftYearMax)) return false;
+  if (
+    filters.draftYearMin !== undefined &&
+    (year === null || year < filters.draftYearMin)
+  )
+    return false;
+  if (
+    filters.draftYearMax !== undefined &&
+    (year === null || year > filters.draftYearMax)
+  )
+    return false;
   if (filters.draftRank) {
     if (filters.draftRank === "outside") {
       if (!row.draft?.includes("ドラフト外")) return false;
-    } else if (!row.draft?.match(new RegExp(`ドラフト.*${filters.draftRank}(?:位|巡目)`))) {
+    } else if (
+      !row.draft?.match(new RegExp(`ドラフト.*${filters.draftRank}(?:位|巡目)`))
+    ) {
       return false;
     }
   }
   if (
     filters.birthYearMin !== undefined &&
     (row.birth_year === null || row.birth_year < filters.birthYearMin)
-  ) return false;
+  )
+    return false;
   if (
     filters.birthYearMax !== undefined &&
     (row.birth_year === null || row.birth_year > filters.birthYearMax)
-  ) return false;
+  )
+    return false;
   if (
     filters.heightMin !== undefined &&
     (row.height_cm === null || row.height_cm < filters.heightMin)
-  ) return false;
+  )
+    return false;
   if (
     filters.heightMax !== undefined &&
     (row.height_cm === null || row.height_cm > filters.heightMax)
-  ) return false;
+  )
+    return false;
   return true;
 }
 

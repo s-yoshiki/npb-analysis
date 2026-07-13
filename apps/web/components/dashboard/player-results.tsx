@@ -159,7 +159,9 @@ export function PlayerResults({
     <Card className="bg-card/85">
       <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <CardTitle className="font-heading text-2xl font-black">選手一覧</CardTitle>
+          <CardTitle className="font-heading text-2xl font-black">
+            選手一覧
+          </CardTitle>
           <CardDescription>
             {description ??
               (query ? `「${query}」の検索結果` : "出場数順に表示")}

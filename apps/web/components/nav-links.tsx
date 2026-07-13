@@ -14,9 +14,13 @@ export function NavLinks() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex items-center gap-1 rounded-full border border-border/70 bg-card/70 p-1 shadow-sm" aria-label="メインナビゲーション">
+    <nav
+      className="flex items-center gap-1 rounded-full border border-border/70 bg-card/70 p-1 shadow-sm"
+      aria-label="メインナビゲーション"
+    >
       {links.map((link) => {
-        const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+        const active =
+          link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
         return (
           <Link
             aria-current={active ? "page" : undefined}
