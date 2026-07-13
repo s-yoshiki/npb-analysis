@@ -3,6 +3,20 @@ import { getLeague, type League } from "./league";
 export type RankingCategory = "batting" | "pitching";
 export type RankingScope = "season" | "career";
 
+export type RankingProfileFilters = {
+  name?: string;
+  throws?: "right" | "left";
+  bats?: "right" | "left" | "both";
+  school?: string;
+  draftYearMin?: number;
+  draftYearMax?: number;
+  draftRank?: string;
+  birthYearMin?: number;
+  birthYearMax?: number;
+  heightMin?: number;
+  heightMax?: number;
+};
+
 export type RankingMetric =
   | "hits"
   | "home_runs"
@@ -51,8 +65,14 @@ export const rankingMetrics: Record<
 export type RankingSourceRow = {
   player_id: string;
   name: string;
+  kana: string | null;
   season: number;
   team: string | null;
+  bats_throws: string | null;
+  career: string | null;
+  draft: string | null;
+  birth_year: number | null;
+  height_cm: number | null;
   games: number | null;
   plate_appearances?: number | null;
   at_bats?: number | null;
@@ -140,6 +160,73 @@ function metricValue(row: Aggregate, metric: RankingMetric): number | null {
   return ratio(row.hitsAllowed + row.walksAllowed, row.innings);
 }
 
+function draftYear(value: string | null): number | null {
+  const match = value?.match(/(\d{4})年/);
+  return match ? Number(match[1]) : null;
+}
+
+function matchesProfile(
+  row: RankingSourceRow,
+  filters: RankingProfileFilters | undefined,
+): boolean {
+  if (!filters) return true;
+  if (filters.name) {
+    const query = filters.name.toLocaleLowerCase("ja");
+    if (
+      !row.name.toLocaleLowerCase("ja").includes(query) &&
+      !row.kana?.toLocaleLowerCase("ja").includes(query)
+    ) {
+      return false;
+    }
+  }
+  if (filters.throws && !row.bats_throws?.includes(filters.throws === "right" ? "右投" : "左投")) {
+    return false;
+  }
+  const battingLabel =
+    filters.bats === "right"
+      ? "右打"
+      : filters.bats === "left"
+        ? "左打"
+        : filters.bats === "both"
+          ? "両打"
+          : undefined;
+  if (battingLabel && !row.bats_throws?.includes(battingLabel)) return false;
+  if (
+    filters.school &&
+    !row.career?.toLocaleLowerCase("ja").includes(filters.school.toLocaleLowerCase("ja"))
+  ) {
+    return false;
+  }
+
+  const year = draftYear(row.draft);
+  if (filters.draftYearMin !== undefined && (year === null || year < filters.draftYearMin)) return false;
+  if (filters.draftYearMax !== undefined && (year === null || year > filters.draftYearMax)) return false;
+  if (filters.draftRank) {
+    if (filters.draftRank === "outside") {
+      if (!row.draft?.includes("ドラフト外")) return false;
+    } else if (!row.draft?.match(new RegExp(`ドラフト.*${filters.draftRank}(?:位|巡目)`))) {
+      return false;
+    }
+  }
+  if (
+    filters.birthYearMin !== undefined &&
+    (row.birth_year === null || row.birth_year < filters.birthYearMin)
+  ) return false;
+  if (
+    filters.birthYearMax !== undefined &&
+    (row.birth_year === null || row.birth_year > filters.birthYearMax)
+  ) return false;
+  if (
+    filters.heightMin !== undefined &&
+    (row.height_cm === null || row.height_cm < filters.heightMin)
+  ) return false;
+  if (
+    filters.heightMax !== undefined &&
+    (row.height_cm === null || row.height_cm > filters.heightMax)
+  ) return false;
+  return true;
+}
+
 export function buildRankings({
   battingRows,
   category,
@@ -149,6 +236,7 @@ export function buildRankings({
   scope,
   season,
   team,
+  filters,
 }: {
   battingRows: RankingSourceRow[];
   pitchingRows: RankingSourceRow[];
@@ -158,6 +246,7 @@ export function buildRankings({
   scope: RankingScope;
   season?: number;
   team?: string;
+  filters?: RankingProfileFilters;
 }): RankingRow[] {
   const source = category === "batting" ? battingRows : pitchingRows;
   const maxGames = new Map<string, number>();
@@ -174,7 +263,8 @@ export function buildRankings({
     if (
       rowLeague !== league ||
       (scope === "season" && row.season !== season) ||
-      (team && row.team !== team)
+      (team && row.team !== team) ||
+      !matchesProfile(row, filters)
     ) {
       continue;
     }

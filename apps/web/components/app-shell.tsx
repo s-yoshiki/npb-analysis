@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight, ChartNoAxesCombined } from "lucide-react";
+import { NavLinks } from "@/components/nav-links";
 
 export function AppShell({
   children,
@@ -10,13 +11,13 @@ export function AppShell({
 }) {
   return (
     <main className="min-h-svh bg-background text-foreground">
-      <header className="sticky top-0 z-50 border-b border-foreground/10 bg-background/90 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/75">
+        <div className="mx-auto flex min-h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-8">
           <Link className="group flex items-center gap-3" href="/">
-            <span className="grid size-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_0_0_4px_var(--background),0_0_0_5px_color-mix(in_oklab,var(--foreground)_12%,transparent)]">
+            <span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground shadow-[0_8px_20px_-10px_var(--primary)]">
               <ChartNoAxesCombined className="size-4" strokeWidth={2.4} />
             </span>
-            <span className="leading-none">
+            <span className="hidden leading-none md:block">
               <strong className="block font-heading text-sm tracking-[-0.02em]">
                 NPB ANALYSIS
               </strong>
@@ -25,32 +26,10 @@ export function AppShell({
               </span>
             </span>
           </Link>
-          <nav
-            className="flex items-center gap-1"
-            aria-label="メインナビゲーション"
-          >
-            <Link
-              className="rounded-full px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              href="/"
-            >
-              概要
-            </Link>
-            <Link
-              className="rounded-full px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              href="/players"
-            >
-              選手一覧
-            </Link>
-            <Link
-              className="rounded-full px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              href="/rankings"
-            >
-              ランキング
-            </Link>
-          </nav>
+          <NavLinks />
         </div>
       </header>
-      <div className="mx-auto flex w-full max-w-7xl flex-col px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
+      <div className="mx-auto flex w-full max-w-7xl flex-col px-4 py-7 sm:px-6 sm:py-10 lg:px-8 lg:py-14">
         {label ? (
           <div className="mb-6 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
             <span>NPB Archive</span>

@@ -48,7 +48,7 @@ export function PlayerMetricChart({
   );
 
   return (
-    <Card className="border-foreground/15 bg-card/80 shadow-none">
+    <Card className="bg-card/85">
       <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <CardTitle className="font-heading text-xl font-black">
@@ -61,7 +61,7 @@ export function PlayerMetricChart({
         <label className="grid gap-1 text-xs font-bold text-muted-foreground">
           表示指標
           <select
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm font-semibold text-foreground"
+            className="select-field h-9 font-semibold"
             onChange={(event) => setMetric(event.target.value)}
             value={metric}
           >

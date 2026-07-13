@@ -196,7 +196,9 @@ export default async function PlayerPage({ params }: PageProps) {
 
   return (
     <AppShell label="Player File">
-      <Card className="overflow-hidden border-foreground/15 bg-foreground text-background shadow-none">
+      <Card className="relative overflow-hidden border-0 bg-[linear-gradient(135deg,var(--foreground)_0%,oklch(0.3_0.1_245)_100%)] text-background ring-1 ring-white/10">
+        <div className="absolute -right-12 -top-20 size-72 rounded-full bg-primary/35 blur-3xl" />
+        <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px)] [background-size:40px_40px]" />
         <CardContent className="px-6 py-8 sm:px-10 sm:py-12">
           <Link
             className={buttonVariants({
@@ -216,7 +218,7 @@ export default async function PlayerPage({ params }: PageProps) {
               >
                 Player file / {profile.id}
               </Badge>
-              <h1 className="font-heading text-5xl font-black leading-[0.96] tracking-[-0.05em] sm:text-7xl">
+              <h1 className="font-heading text-4xl font-black leading-[0.96] tracking-[-0.05em] sm:text-6xl">
                 {profile.name}
               </h1>
               <p className="mt-4 text-sm tracking-[.08em] text-background/55 sm:text-base">

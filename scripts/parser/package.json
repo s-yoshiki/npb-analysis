@@ -2,7 +2,7 @@
   "name": "npb-analysis",
   "private": true,
   "scripts": {
-    "dev": "tsx src/main.ts --limit 2000",
+    "dev": "tsx src/main.ts --limit 2500 --include-retired --delay 50",
     "scrape": "tsx src/main.ts --limit all"
   },
   "dependencies": {

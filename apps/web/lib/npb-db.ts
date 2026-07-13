@@ -6,6 +6,7 @@ import {
   buildRankings,
   type RankingCategory,
   type RankingMetric,
+  type RankingProfileFilters,
   type RankingRow,
   type RankingScope,
   type RankingSourceRow,
@@ -581,7 +582,8 @@ function getRankingSources(db: DatabaseSync): {
     .prepare(
       `
       SELECT
-        b.player_id, p.name, b.season, b.team, b.games,
+        b.player_id, p.name, p.kana, b.season, b.team, b.games,
+        p.bats_throws, p.career, p.draft, p.birth_year, p.height_cm,
         b.plate_appearances, b.at_bats, b.hits, b.home_runs, b.total_bases,
         b.rbi, b.steals, b.sacrifice_flies, b.walks, b.hit_by_pitch
       FROM batting_stats b
@@ -594,7 +596,8 @@ function getRankingSources(db: DatabaseSync): {
     .prepare(
       `
       SELECT
-        pi.player_id, p.name, pi.season, pi.team, pi.games,
+        pi.player_id, p.name, p.kana, pi.season, pi.team, pi.games,
+        p.bats_throws, p.career, p.draft, p.birth_year, p.height_cm,
         pi.wins, pi.losses, pi.saves, pi.holds, pi.innings,
         pi.hits_allowed, pi.walks_allowed, pi.strikeouts, pi.earned_runs
       FROM pitching_stats pi
@@ -636,6 +639,7 @@ export function getRankings(options: {
   scope: RankingScope;
   season?: number;
   team?: string;
+  filters?: RankingProfileFilters;
 }): RankingRow[] {
   const db = openDb();
   if (!db) return [];

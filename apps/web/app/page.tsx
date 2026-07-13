@@ -16,7 +16,7 @@ import {
   hasDatabase,
 } from "@/lib/npb-db";
 import Link from "next/link";
-import { ArrowRight, Database, Search } from "lucide-react";
+import { ArrowRight, Database, Search, Sparkles } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -28,21 +28,24 @@ export default async function Home() {
 
   return (
     <AppShell label="Dashboard">
-      <Card className="relative overflow-hidden border-foreground/15 bg-foreground text-background shadow-[0_20px_60px_-35px_color-mix(in_oklab,var(--foreground)_70%,transparent)]">
-        <div className="absolute -right-28 -top-36 size-80 rounded-full border-[52px] border-primary/60" />
+      <Card className="relative overflow-hidden border-0 bg-[linear-gradient(135deg,var(--foreground)_0%,oklch(0.29_0.09_245)_100%)] text-background shadow-[0_30px_70px_-35px_color-mix(in_oklab,var(--foreground)_80%,transparent)] ring-1 ring-white/10">
+        <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px)] [background-size:44px_44px]" />
+        <div className="absolute -right-16 -top-24 size-80 rounded-full bg-primary/35 blur-3xl" />
+        <div className="absolute bottom-0 right-10 hidden h-3/4 w-px bg-gradient-to-b from-transparent via-background/25 to-transparent lg:block" />
         <CardContent className="relative px-6 py-10 sm:px-10 sm:py-14 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)] lg:items-end lg:gap-16">
           <div>
-            <Badge className="mb-6 border-background/20 bg-background/10 text-background" variant="outline">
+            <Badge className="mb-6 h-7 border-background/20 bg-background/10 px-3 text-background backdrop-blur" variant="outline">
+              <Sparkles className="mr-1 size-3" />
               公式記録から読み解く選手データ
             </Badge>
-            <h1 className="max-w-4xl font-heading text-4xl font-black leading-[1.08] tracking-[-0.045em] sm:text-6xl lg:text-7xl">
-              数字から辿る、<br/><span className="text-primary">日本野球の記憶。</span>
+            <h1 className="max-w-4xl font-heading text-3xl font-black leading-[1.08] tracking-[-0.045em] sm:text-5xl lg:text-6xl">
+              数字から辿る、<br/><span className="bg-gradient-to-r from-sky-300 to-cyan-200 bg-clip-text text-transparent">日本野球の記憶。</span>
             </h1>
             <p className="mt-6 max-w-xl text-sm leading-7 text-background/65 sm:text-base">
               NPB歴代選手の打撃・投手成績を、検索・集計・グラフで横断できるデータアーカイブです。
             </p>
           </div>
-          <div className="mt-10 rounded-xl border border-background/15 bg-background/8 p-2 backdrop-blur lg:mt-0">
+          <div className="mt-10 rounded-2xl border border-background/15 bg-background/10 p-2 shadow-2xl backdrop-blur-md lg:mt-0">
             <PlayerSearchForm defaultValue="" />
             <Link
               className={buttonVariants({
@@ -70,7 +73,7 @@ export default async function Home() {
       ) : null}
 
       <section>
-        <div className="mb-5 flex items-end justify-between border-b border-foreground/15 pb-3"><div><p className="text-[11px] font-bold uppercase tracking-[.18em] text-primary">At a glance</p><h2 className="mt-1 font-heading text-2xl font-black">データベース概要</h2></div><Search className="hidden size-5 text-muted-foreground sm:block"/></div>
+        <div className="mb-5 flex items-end justify-between border-b border-border pb-4"><div><p className="section-kicker">At a glance</p><h2 className="mt-1 font-heading text-2xl font-black tracking-tight">データベース概要</h2></div><span className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary"><Search className="size-4"/></span></div>
         <div className="grid gap-3 sm:grid-cols-3">
         <MetricCard
           label="選手数"

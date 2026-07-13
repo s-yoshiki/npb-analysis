@@ -6,7 +6,7 @@ export function PlayerProfileCard({ detailJson }: { detailJson: string }) {
   );
 
   return (
-    <Card className="border-foreground/15 bg-card/80 shadow-none">
+    <Card className="bg-card/85">
       <CardHeader>
         <CardTitle className="font-heading text-xl font-black">プロフィール</CardTitle>
       </CardHeader>

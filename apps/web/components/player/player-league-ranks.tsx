@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 const metrics = [
   ["hits", "安打"],
@@ -26,9 +27,22 @@ const metrics = [
   ["era", "防御率"],
 ] as const;
 
+function rankClass(rank: number | undefined) {
+  if (rank === 1) {
+    return "bg-amber-300/70 font-black text-amber-950 hover:bg-amber-300/85";
+  }
+  if (rank === 2) {
+    return "bg-slate-300/80 font-black text-slate-800 hover:bg-slate-300";
+  }
+  if (rank === 3) {
+    return "bg-amber-800/80 font-black text-white hover:bg-amber-800/90";
+  }
+  return "";
+}
+
 export function PlayerLeagueRanks({ rows }: { rows: PlayerLeagueRank[] }) {
   return (
-    <Card className="border-foreground/15 bg-card/80 shadow-none">
+    <Card className="bg-card/85">
       <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <CardTitle className="font-heading text-2xl font-black">
@@ -42,7 +56,7 @@ export function PlayerLeagueRanks({ rows }: { rows: PlayerLeagueRank[] }) {
       </CardHeader>
       <CardContent>
         {rows.length ? (
-          <div className="overflow-x-auto rounded-md border border-foreground/10">
+          <div className="overflow-x-auto rounded-xl border border-border/80">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -61,7 +75,13 @@ export function PlayerLeagueRanks({ rows }: { rows: PlayerLeagueRank[] }) {
                     <TableCell className="font-bold">{row.season}</TableCell>
                     <TableCell>{formatLeague(row.league)}</TableCell>
                     {metrics.map(([key]) => (
-                      <TableCell className="text-right tabular-nums" key={key}>
+                      <TableCell
+                        className={cn(
+                          "text-right tabular-nums",
+                          rankClass(row.metrics[key]),
+                        )}
+                        key={key}
+                      >
                         {row.metrics[key] ? `${row.metrics[key]}位` : "-"}
                       </TableCell>
                     ))}
