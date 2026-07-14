@@ -1,5 +1,3 @@
-"use client";
-
 import { formatLeague } from "@/lib/league";
 import {
   leagueRankMetrics,
@@ -22,7 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
 function rankClass(rank: number | undefined) {
@@ -103,12 +100,14 @@ function RankTable({
   );
 }
 
-export function PlayerLeagueRanks({ rows }: { rows: PlayerLeagueRank[] }) {
-  const battingCount = rows.filter((row) => row.category === "batting").length;
-  const pitchingCount = rows.filter(
-    (row) => row.category === "pitching",
-  ).length;
-  const initialCategory = battingCount ? "batting" : "pitching";
+export function PlayerLeagueRanks({
+  category,
+  rows,
+}: {
+  category: LeagueRankCategory;
+  rows: PlayerLeagueRank[];
+}) {
+  const count = rows.filter((row) => row.category === category).length;
 
   return (
     <Card className="bg-card/85">
@@ -121,23 +120,10 @@ export function PlayerLeagueRanks({ rows }: { rows: PlayerLeagueRank[] }) {
             DB収録選手内で集計。率系指標は規定到達者を対象
           </CardDescription>
         </div>
-        <Badge variant="secondary">{rows.length} records</Badge>
+        <Badge variant="secondary">{count} records</Badge>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue={initialCategory}>
-          <TabsList className="mb-4 grid h-10 w-full max-w-sm grid-cols-2">
-            <TabsTrigger value="batting">打撃成績 ({battingCount})</TabsTrigger>
-            <TabsTrigger value="pitching">
-              投手成績 ({pitchingCount})
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="batting">
-            <RankTable category="batting" rows={rows} />
-          </TabsContent>
-          <TabsContent value="pitching">
-            <RankTable category="pitching" rows={rows} />
-          </TabsContent>
-        </Tabs>
+        <RankTable category={category} rows={rows} />
       </CardContent>
     </Card>
   );

@@ -13,16 +13,16 @@ import { cn } from "@/lib/utils";
 import {
   rankingMetrics,
   type RankingCategory,
+  type RankingLeague,
   type RankingMetric,
   type RankingProfileFilters,
   type RankingScope,
 } from "@/lib/rankings";
-import type { League } from "@/lib/league";
 
 type Props = {
   category: RankingCategory;
   filters: RankingProfileFilters;
-  league: League;
+  league: RankingLeague;
   metric: RankingMetric;
   scope: RankingScope;
   season: number;
@@ -158,7 +158,7 @@ export function RankingFilterForm({
   function clearAll() {
     const defaultSeason = seasons[0] ?? initialSeason;
     setCategory("batting");
-    setLeague("central");
+    setLeague("all");
     setMetric(rankingMetrics.batting[0]!.value);
     setScope("season");
     setSeason(defaultSeason);
@@ -225,7 +225,7 @@ export function RankingFilterForm({
               }}
               value={category}
             >
-              <option value="batting">打撃</option>
+              <option value="batting">野手</option>
               <option value="pitching">投手</option>
             </select>
           </label>
@@ -308,13 +308,14 @@ export function RankingFilterForm({
               className="select-field"
               name="league"
               onChange={(event) => {
-                const next = event.target.value as League;
+                const next = event.target.value as RankingLeague;
                 setLeague(next);
                 setTeam("");
                 navigate({ league: next, team: undefined });
               }}
               value={league}
             >
+              <option value="all">-</option>
               <option value="central">セ・リーグ</option>
               <option value="pacific">パ・リーグ</option>
             </select>
@@ -331,7 +332,7 @@ export function RankingFilterForm({
               }}
               value={team}
             >
-              <option value="">リーグ全体</option>
+              <option value="">全球団</option>
               {teams.map((item) => (
                 <option key={item} value={item}>
                   {item}

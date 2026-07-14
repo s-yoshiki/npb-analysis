@@ -39,7 +39,12 @@ function PlayerMobileCards({ players }: { players: PlayerListRow[] }) {
             <CardContent className="p-4">
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
-                  <strong className="block text-lg">{player.name}</strong>
+                  <div className="flex items-center gap-2">
+                    <strong className="block text-lg">{player.name}</strong>
+                    <Badge variant="secondary">
+                      {player.category === "pitching" ? "投手" : "野手"}
+                    </Badge>
+                  </div>
                   <span className="text-xs text-muted-foreground">
                     {player.kana || player.id}
                   </span>
@@ -105,8 +110,14 @@ function PlayerDesktopTable({ players }: { players: PlayerListRow[] }) {
                   href={`/players/${player.id}`}
                 >
                   <strong>{player.name}</strong>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="flex items-center gap-2 text-xs text-muted-foreground">
                     {player.kana || player.id}
+                    <Badge
+                      className="px-1.5 py-0 text-[10px]"
+                      variant="secondary"
+                    >
+                      {player.category === "pitching" ? "投手" : "野手"}
+                    </Badge>
                   </span>
                 </Link>
               </TableCell>

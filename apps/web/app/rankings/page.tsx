@@ -18,11 +18,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatNumber, formatRate } from "@/lib/format";
-import { formatLeague, type League } from "@/lib/league";
+import { formatLeague } from "@/lib/league";
 import { getRankingSeasons, getRankings, getRankingTeams } from "@/lib/npb-db";
 import {
   rankingMetrics,
   type RankingCategory,
+  type RankingLeague,
   type RankingMetric,
   type RankingProfileFilters,
   type RankingScope,
@@ -46,7 +47,10 @@ export default async function RankingsPage({ searchParams }: PageProps) {
   const category: RankingCategory =
     params.category === "pitching" ? "pitching" : "batting";
   const scope: RankingScope = params.scope === "career" ? "career" : "season";
-  const league: League = params.league === "pacific" ? "pacific" : "central";
+  const league: RankingLeague =
+    params.league === "central" || params.league === "pacific"
+      ? params.league
+      : "all";
   const availableMetrics = rankingMetrics[category];
   const metric = availableMetrics.some((item) => item.value === params.metric)
     ? (params.metric as RankingMetric)
@@ -130,7 +134,8 @@ export default async function RankingsPage({ searchParams }: PageProps) {
         <CardHeader>
           <CardTitle className="font-heading text-2xl font-black">
             {scope === "season" ? `${season}年度` : "通算"}・
-            {team ?? formatLeague(league)} {definition.label}
+            {team ?? (league === "all" ? "全リーグ" : formatLeague(league))}{" "}
+            {definition.label}
           </CardTitle>
           <CardDescription>
             DB収録データを対象に上位100名を表示
@@ -166,7 +171,7 @@ export default async function RankingsPage({ searchParams }: PageProps) {
                     <TableCell className="text-right font-bold tabular-nums">
                       {definition.rate
                         ? formatRate(row.value)
-                        : formatNumber(row.value)}
+                        : formatNumber(row.value, definition.digits)}
                     </TableCell>
                   </TableRow>
                 ))}

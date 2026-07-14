@@ -1,6 +1,7 @@
 import { getLeague, type League } from "./league";
 
 export type RankingCategory = "batting" | "pitching";
+export type RankingLeague = League | "all";
 export type RankingScope = "season" | "career";
 
 export type RankingProfileFilters = {
@@ -18,47 +19,197 @@ export type RankingProfileFilters = {
 };
 
 export type RankingMetric =
+  | "games"
+  | "plate_appearances"
+  | "at_bats"
+  | "runs"
   | "hits"
+  | "doubles"
+  | "triples"
   | "home_runs"
+  | "total_bases"
   | "rbi"
   | "steals"
+  | "caught_stealing"
+  | "sacrifice_hits"
+  | "sacrifice_flies"
+  | "walks"
+  | "hit_by_pitch"
+  | "strikeouts"
+  | "grounded_into_double_plays"
   | "batting_average"
   | "on_base_percentage"
   | "slugging_percentage"
   | "ops"
   | "wins"
+  | "losses"
   | "saves"
   | "holds"
-  | "strikeouts"
+  | "hold_points"
+  | "complete_games"
+  | "shutouts"
+  | "no_walk_complete_games"
+  | "winning_percentage"
+  | "batters_faced"
+  | "innings"
+  | "hits_allowed"
+  | "home_runs_allowed"
+  | "walks_allowed"
+  | "wild_pitches"
+  | "balks"
+  | "runs_allowed"
+  | "earned_runs"
   | "era"
   | "whip";
 
+export type RankingMetricDefinition = {
+  value: RankingMetric;
+  label: string;
+  digits?: number;
+  lowerIsBetter?: boolean;
+  qualified?: boolean;
+  rate?: boolean;
+};
+
 export const rankingMetrics: Record<
   RankingCategory,
-  {
-    value: RankingMetric;
-    label: string;
-    lowerIsBetter?: boolean;
-    rate?: boolean;
-  }[]
+  RankingMetricDefinition[]
 > = {
   batting: [
+    { value: "games", label: "試合" },
+    { value: "plate_appearances", label: "打席" },
+    { value: "at_bats", label: "打数" },
+    { value: "runs", label: "得点" },
     { value: "hits", label: "安打" },
+    { value: "doubles", label: "二塁打" },
+    { value: "triples", label: "三塁打" },
     { value: "home_runs", label: "本塁打" },
+    { value: "total_bases", label: "塁打" },
     { value: "rbi", label: "打点" },
     { value: "steals", label: "盗塁" },
-    { value: "batting_average", label: "打率", rate: true },
-    { value: "on_base_percentage", label: "出塁率", rate: true },
-    { value: "slugging_percentage", label: "長打率", rate: true },
-    { value: "ops", label: "OPS", rate: true },
+    { value: "caught_stealing", label: "盗塁刺" },
+    { value: "sacrifice_hits", label: "犠打" },
+    { value: "sacrifice_flies", label: "犠飛" },
+    { value: "walks", label: "四球" },
+    { value: "hit_by_pitch", label: "死球" },
+    { value: "strikeouts", label: "三振" },
+    { value: "grounded_into_double_plays", label: "併殺打" },
+    {
+      value: "batting_average",
+      label: "打率",
+      qualified: true,
+      rate: true,
+    },
+    {
+      value: "on_base_percentage",
+      label: "出塁率",
+      qualified: true,
+      rate: true,
+    },
+    {
+      value: "slugging_percentage",
+      label: "長打率",
+      qualified: true,
+      rate: true,
+    },
+    { value: "ops", label: "OPS", qualified: true, rate: true },
   ],
   pitching: [
+    { value: "games", label: "登板" },
     { value: "wins", label: "勝利" },
+    { value: "losses", label: "敗北" },
     { value: "saves", label: "セーブ" },
     { value: "holds", label: "ホールド" },
+    { value: "hold_points", label: "ホールドポイント" },
+    { value: "complete_games", label: "完投" },
+    { value: "shutouts", label: "完封勝" },
+    { value: "no_walk_complete_games", label: "無四球" },
+    {
+      value: "winning_percentage",
+      label: "勝率",
+      qualified: true,
+      rate: true,
+    },
+    { value: "batters_faced", label: "対戦打者" },
+    { value: "innings", label: "投球回", digits: 1 },
+    { value: "hits_allowed", label: "被安打" },
+    { value: "home_runs_allowed", label: "被本塁打" },
+    { value: "walks_allowed", label: "与四球" },
+    { value: "hit_by_pitch", label: "与死球" },
     { value: "strikeouts", label: "奪三振" },
-    { value: "era", label: "防御率", lowerIsBetter: true, rate: true },
-    { value: "whip", label: "WHIP", lowerIsBetter: true, rate: true },
+    { value: "wild_pitches", label: "暴投" },
+    { value: "balks", label: "ボーク" },
+    { value: "runs_allowed", label: "失点" },
+    { value: "earned_runs", label: "自責点" },
+    {
+      value: "era",
+      label: "防御率",
+      digits: 2,
+      lowerIsBetter: true,
+      qualified: true,
+    },
+    {
+      value: "whip",
+      label: "WHIP",
+      digits: 2,
+      lowerIsBetter: true,
+      qualified: true,
+    },
+  ],
+};
+
+type DerivedMetric =
+  | "batting_average"
+  | "on_base_percentage"
+  | "slugging_percentage"
+  | "ops"
+  | "winning_percentage"
+  | "era"
+  | "whip";
+type RawMetric = Exclude<RankingMetric, DerivedMetric>;
+
+const rawMetrics: Record<RankingCategory, RawMetric[]> = {
+  batting: [
+    "games",
+    "plate_appearances",
+    "at_bats",
+    "runs",
+    "hits",
+    "doubles",
+    "triples",
+    "home_runs",
+    "total_bases",
+    "rbi",
+    "steals",
+    "caught_stealing",
+    "sacrifice_hits",
+    "sacrifice_flies",
+    "walks",
+    "hit_by_pitch",
+    "strikeouts",
+    "grounded_into_double_plays",
+  ],
+  pitching: [
+    "games",
+    "wins",
+    "losses",
+    "saves",
+    "holds",
+    "hold_points",
+    "complete_games",
+    "shutouts",
+    "no_walk_complete_games",
+    "batters_faced",
+    "innings",
+    "hits_allowed",
+    "home_runs_allowed",
+    "walks_allowed",
+    "hit_by_pitch",
+    "strikeouts",
+    "wild_pitches",
+    "balks",
+    "runs_allowed",
+    "earned_runs",
   ],
 };
 
@@ -73,106 +224,66 @@ export type RankingSourceRow = {
   draft: string | null;
   birth_year: number | null;
   height_cm: number | null;
-  games: number | null;
-  plate_appearances?: number | null;
-  at_bats?: number | null;
-  runs?: number | null;
-  hits?: number | null;
-  doubles?: number | null;
-  triples?: number | null;
-  home_runs?: number | null;
-  total_bases?: number | null;
-  rbi?: number | null;
-  steals?: number | null;
-  caught_stealing?: number | null;
-  sacrifice_hits?: number | null;
-  sacrifice_flies?: number | null;
-  walks?: number | null;
-  hit_by_pitch?: number | null;
-  grounded_into_double_plays?: number | null;
-  wins?: number | null;
-  losses?: number | null;
-  saves?: number | null;
-  holds?: number | null;
-  hold_points?: number | null;
-  complete_games?: number | null;
-  shutouts?: number | null;
-  no_walk_complete_games?: number | null;
-  batters_faced?: number | null;
-  innings?: number | null;
-  hits_allowed?: number | null;
-  home_runs_allowed?: number | null;
-  walks_allowed?: number | null;
-  strikeouts?: number | null;
-  wild_pitches?: number | null;
-  balks?: number | null;
-  runs_allowed?: number | null;
-  earned_runs?: number | null;
-};
+} & Partial<Record<RawMetric, number | null>>;
 
 export type RankingRow = {
   rank: number;
   playerId: string;
   name: string;
-  league: League;
+  league: League | null;
   season: number | null;
   value: number;
   qualified: boolean;
 };
 
 type Aggregate = Omit<RankingRow, "rank" | "value" | "qualified"> & {
-  games: number;
-  plateAppearances: number;
-  atBats: number;
-  hits: number;
-  homeRuns: number;
-  totalBases: number;
-  rbi: number;
-  steals: number;
-  sacrificeFlies: number;
-  walks: number;
-  hitByPitch: number;
-  wins: number;
-  losses: number;
-  saves: number;
-  holds: number;
-  innings: number;
-  hitsAllowed: number;
-  walksAllowed: number;
-  strikeouts: number;
-  earnedRuns: number;
+  requiredGames: number;
+  totals: Partial<Record<RawMetric, number>>;
+  present: Set<RawMetric>;
 };
 
 function ratio(numerator: number, denominator: number): number | null {
   return denominator > 0 ? numerator / denominator : null;
 }
 
+function total(row: Aggregate, key: RawMetric): number {
+  return row.totals[key] ?? 0;
+}
+
 function metricValue(row: Aggregate, metric: RankingMetric): number | null {
-  if (metric === "hits") return row.hits;
-  if (metric === "home_runs") return row.homeRuns;
-  if (metric === "rbi") return row.rbi;
-  if (metric === "steals") return row.steals;
-  if (metric === "batting_average") return ratio(row.hits, row.atBats);
+  if (metric === "batting_average") {
+    return ratio(total(row, "hits"), total(row, "at_bats"));
+  }
   if (metric === "on_base_percentage") {
     return ratio(
-      row.hits + row.walks + row.hitByPitch,
-      row.atBats + row.walks + row.hitByPitch + row.sacrificeFlies,
+      total(row, "hits") + total(row, "walks") + total(row, "hit_by_pitch"),
+      total(row, "at_bats") +
+        total(row, "walks") +
+        total(row, "hit_by_pitch") +
+        total(row, "sacrifice_flies"),
     );
   }
   if (metric === "slugging_percentage") {
-    return ratio(row.totalBases, row.atBats);
+    return ratio(total(row, "total_bases"), total(row, "at_bats"));
   }
   if (metric === "ops") {
     const obp = metricValue(row, "on_base_percentage");
     const slg = metricValue(row, "slugging_percentage");
     return obp === null || slg === null ? null : obp + slg;
   }
-  if (metric === "wins") return row.wins;
-  if (metric === "saves") return row.saves;
-  if (metric === "holds") return row.holds;
-  if (metric === "strikeouts") return row.strikeouts;
-  if (metric === "era") return ratio(row.earnedRuns * 9, row.innings);
-  return ratio(row.hitsAllowed + row.walksAllowed, row.innings);
+  if (metric === "winning_percentage") {
+    return ratio(total(row, "wins"), total(row, "wins") + total(row, "losses"));
+  }
+  if (metric === "era") {
+    return ratio(total(row, "earned_runs") * 9, total(row, "innings"));
+  }
+  if (metric === "whip") {
+    return ratio(
+      total(row, "hits_allowed") + total(row, "walks_allowed"),
+      total(row, "innings"),
+    );
+  }
+  return row.present.has(metric) ? total(row, metric) : null;
 }
 
 function draftYear(value: string | null): number | null {
@@ -190,16 +301,14 @@ function matchesProfile(
     if (
       !row.name.toLocaleLowerCase("ja").includes(query) &&
       !row.kana?.toLocaleLowerCase("ja").includes(query)
-    ) {
+    )
       return false;
-    }
   }
   if (
     filters.throws &&
     !row.bats_throws?.includes(filters.throws === "right" ? "右投" : "左投")
-  ) {
+  )
     return false;
-  }
   const battingLabel =
     filters.bats === "right"
       ? "右打"
@@ -214,9 +323,8 @@ function matchesProfile(
     !row.career
       ?.toLocaleLowerCase("ja")
       .includes(filters.school.toLocaleLowerCase("ja"))
-  ) {
+  )
     return false;
-  }
 
   const year = draftYear(row.draft);
   if (
@@ -229,15 +337,13 @@ function matchesProfile(
     (year === null || year > filters.draftYearMax)
   )
     return false;
-  if (filters.draftRank) {
-    if (filters.draftRank === "outside") {
-      if (!row.draft?.includes("ドラフト外")) return false;
-    } else if (
-      !row.draft?.match(new RegExp(`ドラフト.*${filters.draftRank}(?:位|巡目)`))
-    ) {
-      return false;
-    }
-  }
+  if (filters.draftRank === "outside") {
+    if (!row.draft?.includes("ドラフト外")) return false;
+  } else if (
+    filters.draftRank &&
+    !row.draft?.match(new RegExp(`ドラフト.*${filters.draftRank}(?:位|巡目)`))
+  )
+    return false;
   if (
     filters.birthYearMin !== undefined &&
     (row.birth_year === null || row.birth_year < filters.birthYearMin)
@@ -275,7 +381,7 @@ export function buildRankings({
   battingRows: RankingSourceRow[];
   pitchingRows: RankingSourceRow[];
   category: RankingCategory;
-  league: League;
+  league: RankingLeague;
   metric: RankingMetric;
   scope: RankingScope;
   season?: number;
@@ -295,84 +401,54 @@ export function buildRankings({
   for (const row of source) {
     const rowLeague = getLeague(row.team, row.season);
     if (
-      rowLeague !== league ||
+      !rowLeague ||
+      (league !== "all" && rowLeague !== league) ||
       (scope === "season" && row.season !== season) ||
       (team && row.team !== team) ||
       !matchesProfile(row, filters)
-    ) {
+    )
       continue;
-    }
+
     const key = `${row.player_id}:${scope === "season" ? row.season : "career"}`;
     const current = aggregates.get(key) ?? {
       playerId: row.player_id,
       name: row.name,
       league: rowLeague,
       season: scope === "season" ? row.season : null,
-      games: 0,
-      plateAppearances: 0,
-      atBats: 0,
-      hits: 0,
-      homeRuns: 0,
-      totalBases: 0,
-      rbi: 0,
-      steals: 0,
-      sacrificeFlies: 0,
-      walks: 0,
-      hitByPitch: 0,
-      wins: 0,
-      losses: 0,
-      saves: 0,
-      holds: 0,
-      innings: 0,
-      hitsAllowed: 0,
-      walksAllowed: 0,
-      strikeouts: 0,
-      earnedRuns: 0,
+      requiredGames: 0,
+      totals: {},
+      present: new Set<RawMetric>(),
     };
-    current.games += row.games ?? 0;
-    current.plateAppearances += row.plate_appearances ?? 0;
-    current.atBats += row.at_bats ?? 0;
-    current.hits += row.hits ?? 0;
-    current.homeRuns += row.home_runs ?? 0;
-    current.totalBases += row.total_bases ?? 0;
-    current.rbi += row.rbi ?? 0;
-    current.steals += row.steals ?? 0;
-    current.sacrificeFlies += row.sacrifice_flies ?? 0;
-    current.walks += row.walks ?? 0;
-    current.hitByPitch += row.hit_by_pitch ?? 0;
-    current.wins += row.wins ?? 0;
-    current.losses += row.losses ?? 0;
-    current.saves += row.saves ?? 0;
-    current.holds += row.holds ?? 0;
-    current.innings += row.innings ?? 0;
-    current.hitsAllowed += row.hits_allowed ?? 0;
-    current.walksAllowed += row.walks_allowed ?? 0;
-    current.strikeouts += row.strikeouts ?? 0;
-    current.earnedRuns += row.earned_runs ?? 0;
+    if (current.league !== rowLeague) current.league = null;
+    current.requiredGames = Math.max(
+      current.requiredGames,
+      maxGames.get(`${row.season}:${rowLeague}`) ?? 0,
+    );
+    for (const rawMetric of rawMetrics[category]) {
+      const value = row[rawMetric];
+      if (typeof value !== "number") continue;
+      current.totals[rawMetric] = total(current, rawMetric) + value;
+      current.present.add(rawMetric);
+    }
     aggregates.set(key, current);
   }
 
-  const definition = [
-    ...rankingMetrics.batting,
-    ...rankingMetrics.pitching,
-  ].find((item) => item.value === metric);
+  const definition = rankingMetrics[category].find(
+    (item) => item.value === metric,
+  );
   const ranked = [...aggregates.values()]
     .map((row) => {
       const value = metricValue(row, metric);
-      const games =
-        row.season === null
-          ? 0
-          : (maxGames.get(`${row.season}:${row.league}`) ?? 0);
       const qualified =
         scope === "career" ||
         (category === "batting"
-          ? row.plateAppearances >= games * 3.1
-          : row.innings >= games);
+          ? total(row, "plate_appearances") >= row.requiredGames * 3.1
+          : total(row, "innings") >= row.requiredGames);
       return value === null ? null : { row, value, qualified };
     })
     .filter(
       (item): item is { row: Aggregate; value: number; qualified: boolean } =>
-        item !== null && (!definition?.rate || item.qualified),
+        item !== null && (!definition?.qualified || item.qualified),
     )
     .sort((a, b) =>
       definition?.lowerIsBetter ? a.value - b.value : b.value - a.value,

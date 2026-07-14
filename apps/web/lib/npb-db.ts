@@ -1,10 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { DatabaseSync } from "node:sqlite";
-import { getLeague, type League } from "./league";
+import { getLeague } from "./league";
 import {
   buildRankings,
   type RankingCategory,
+  type RankingLeague,
   type RankingMetric,
   type RankingProfileFilters,
   type RankingRow,
@@ -26,6 +27,7 @@ export type PlayerListRow = {
   kana: string | null;
   player_url: string;
   is_active: number;
+  category: RankingCategory;
   batting_seasons: number;
   pitching_seasons: number;
   games: number | null;
@@ -44,7 +46,9 @@ export type PlayersPage = {
   totalPages: number;
 };
 
-export type PlayerFilters = RankingProfileFilters;
+export type PlayerFilters = RankingProfileFilters & {
+  category?: RankingCategory;
+};
 
 export type Summary = {
   players: number;
@@ -75,6 +79,7 @@ export type PlayerProfile = {
   kana: string | null;
   player_url: string;
   is_active: number;
+  position: string | null;
   bats_throws: string | null;
   height_weight: string | null;
   height_cm: number | null;
@@ -176,6 +181,19 @@ function likeQuery(value: string): string {
   return `%${value.replace(/[%_]/g, "\\$&")}%`;
 }
 
+const playerCategorySql = `
+  CASE
+    WHEN p.position = '投手' THEN 'pitching'
+    WHEN p.position IN ('捕手', '内野手', '外野手') THEN 'batting'
+    WHEN COALESCE((
+      SELECT SUM(pi2.innings) FROM pitching_stats pi2 WHERE pi2.player_id = p.id
+    ), 0) >= MAX(10, COALESCE((
+      SELECT SUM(b2.plate_appearances) FROM batting_stats b2 WHERE b2.player_id = p.id
+    ), 0) * 0.5) THEN 'pitching'
+    ELSE 'batting'
+  END
+`;
+
 export function hasDatabase(): boolean {
   return fs.existsSync(DB_PATH);
 }
@@ -246,6 +264,10 @@ function getPlayerListWhere(query: string, filters: PlayerFilters = {}) {
   if (name) {
     conditions.push("(p.name LIKE ? ESCAPE '\\' OR p.kana LIKE ? ESCAPE '\\')");
     params.push(likeQuery(name), likeQuery(name));
+  }
+  if (filters.category) {
+    conditions.push(`(${playerCategorySql}) = ?`);
+    params.push(filters.category);
   }
   if (filters.throws) {
     conditions.push("p.bats_throws LIKE ?");
@@ -357,6 +379,7 @@ export function getPlayersPage({
           p.kana,
           p.player_url,
           ${activeSelect},
+          ${playerCategorySql} AS category,
           COALESCE(b.batting_seasons, 0) AS batting_seasons,
           COALESCE(pi.pitching_seasons, 0) AS pitching_seasons,
           b.games,
@@ -511,6 +534,7 @@ export function getPlayerDetail(id: string): PlayerDetail | null {
           kana,
           player_url,
           ${activeSelect},
+          position,
           bats_throws,
           height_weight,
           height_cm,
@@ -702,7 +726,7 @@ export function getRankingSeasons(): number[] {
 
 export function getRankings(options: {
   category: RankingCategory;
-  league: League;
+  league: RankingLeague;
   metric: RankingMetric;
   scope: RankingScope;
   season?: number;
@@ -721,7 +745,7 @@ export function getRankings(options: {
 
 export function getRankingTeams(options: {
   category: RankingCategory;
-  league: League;
+  league: RankingLeague;
   scope: RankingScope;
   season?: number;
 }): string[] {
@@ -739,7 +763,8 @@ export function getRankingTeams(options: {
           .filter(
             (row) =>
               row.team &&
-              getLeague(row.team, row.season) === options.league &&
+              (options.league === "all" ||
+                getLeague(row.team, row.season) === options.league) &&
               (options.scope === "career" || row.season === options.season),
           )
           .map((row) => row.team as string),

@@ -87,6 +87,18 @@ export function PlayerFilterForm({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <label className="grid gap-1.5 text-xs font-bold text-muted-foreground">
+          選手区分
+          <select
+            className="select-field"
+            defaultValue={filters.category ?? ""}
+            name="category"
+          >
+            <option value="">指定なし</option>
+            <option value="batting">野手</option>
+            <option value="pitching">投手</option>
+          </select>
+        </label>
         <label className="grid gap-1.5 text-xs font-bold text-muted-foreground sm:col-span-2">
           選手名
           <input

@@ -30,6 +30,10 @@ export default async function PlayersPage({ searchParams }: PageProps) {
   const query = params.q?.trim() ?? "";
   const requestedPage = parsePage(params.page);
   const filters: PlayerFilters = {
+    category:
+      params.category === "batting" || params.category === "pitching"
+        ? params.category
+        : undefined,
     throws:
       params.throws === "right" || params.throws === "left"
         ? params.throws
