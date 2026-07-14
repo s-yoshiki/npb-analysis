@@ -2,22 +2,27 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { LoaderCircle, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import {
+  LoaderCircle,
+  RotateCcw,
+  Search,
+  SlidersHorizontal,
+} from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   rankingMetrics,
   type RankingCategory,
+  type RankingLeague,
   type RankingMetric,
   type RankingProfileFilters,
   type RankingScope,
-} from "@/lib/rankings";
-import type { League } from "@/lib/league";
+} from "@/modules/npb/domain/services/ranking-service";
 
 type Props = {
   category: RankingCategory;
   filters: RankingProfileFilters;
-  league: League;
+  league: RankingLeague;
   metric: RankingMetric;
   scope: RankingScope;
   season: number;
@@ -153,7 +158,7 @@ export function RankingFilterForm({
   function clearAll() {
     const defaultSeason = seasons[0] ?? initialSeason;
     setCategory("batting");
-    setLeague("central");
+    setLeague("all");
     setMetric(rankingMetrics.batting[0]!.value);
     setScope("season");
     setSeason(defaultSeason);
@@ -212,11 +217,15 @@ export function RankingFilterForm({
                 setCategory(next);
                 setMetric(nextMetric);
                 setTeam("");
-                navigate({ category: next, metric: nextMetric, team: undefined });
+                navigate({
+                  category: next,
+                  metric: nextMetric,
+                  team: undefined,
+                });
               }}
               value={category}
             >
-              <option value="batting">打撃</option>
+              <option value="batting">野手</option>
               <option value="pitching">投手</option>
             </select>
           </label>
@@ -299,13 +308,14 @@ export function RankingFilterForm({
               className="select-field"
               name="league"
               onChange={(event) => {
-                const next = event.target.value as League;
+                const next = event.target.value as RankingLeague;
                 setLeague(next);
                 setTeam("");
                 navigate({ league: next, team: undefined });
               }}
               value={league}
             >
+              <option value="all">-</option>
               <option value="central">セ・リーグ</option>
               <option value="pacific">パ・リーグ</option>
             </select>
@@ -322,7 +332,7 @@ export function RankingFilterForm({
               }}
               value={team}
             >
-              <option value="">リーグ全体</option>
+              <option value="">全球団</option>
               {teams.map((item) => (
                 <option key={item} value={item}>
                   {item}
@@ -359,7 +369,11 @@ export function RankingFilterForm({
           </label>
           <label className="grid gap-1.5 text-xs font-bold text-muted-foreground">
             投げ腕
-            <select className="select-field" defaultValue={filters.throws ?? ""} name="throws">
+            <select
+              className="select-field"
+              defaultValue={filters.throws ?? ""}
+              name="throws"
+            >
               <option value="">指定なし</option>
               <option value="right">右投げ</option>
               <option value="left">左投げ</option>
@@ -367,7 +381,11 @@ export function RankingFilterForm({
           </label>
           <label className="grid gap-1.5 text-xs font-bold text-muted-foreground">
             打席
-            <select className="select-field" defaultValue={filters.bats ?? ""} name="bats">
+            <select
+              className="select-field"
+              defaultValue={filters.bats ?? ""}
+              name="bats"
+            >
               <option value="">指定なし</option>
               <option value="right">右打ち</option>
               <option value="left">左打ち</option>
@@ -395,13 +413,19 @@ export function RankingFilterForm({
           />
           <label className="grid gap-1.5 text-xs font-bold text-muted-foreground">
             ドラフト順位
-            <select className="select-field" defaultValue={filters.draftRank ?? ""} name="draftRank">
+            <select
+              className="select-field"
+              defaultValue={filters.draftRank ?? ""}
+              name="draftRank"
+            >
               <option value="">指定なし</option>
-              {Array.from({ length: 10 }, (_, index) => index + 1).map((rank) => (
-                <option key={rank} value={rank}>
-                  {rank}位／{rank}巡目
-                </option>
-              ))}
+              {Array.from({ length: 10 }, (_, index) => index + 1).map(
+                (rank) => (
+                  <option key={rank} value={rank}>
+                    {rank}位／{rank}巡目
+                  </option>
+                ),
+              )}
               <option value="outside">ドラフト外</option>
             </select>
           </label>
@@ -438,7 +462,11 @@ export function RankingFilterForm({
           disabled={isPending}
           type="submit"
         >
-          {isPending ? <LoaderCircle className="size-4 animate-spin" /> : <Search className="size-4" />}
+          {isPending ? (
+            <LoaderCircle className="size-4 animate-spin" />
+          ) : (
+            <Search className="size-4" />
+          )}
           条件を適用
         </button>
       </div>

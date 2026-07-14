@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx src/main.ts --limit 2500 --include-retired --delay 50",
-    "scrape": "tsx src/main.ts --limit all"
+    "scrape": "tsx src/main.ts --limit all --include-retired --delay 1"
   },
   "dependencies": {
     "axios": "^1.16.1",

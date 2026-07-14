@@ -2,11 +2,8 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-function pageHref(page: number, query: string) {
-  const params = new URLSearchParams();
-  if (query) {
-    params.set("q", query);
-  }
+function pageHref(page: number, searchParams: Record<string, string>) {
+  const params = new URLSearchParams(searchParams);
   if (page > 1) {
     params.set("page", String(page));
   }
@@ -23,11 +20,11 @@ function getVisiblePages(current: number, total: number) {
 
 export function PlayerPagination({
   page,
-  query,
+  searchParams,
   totalPages,
 }: {
   page: number;
-  query: string;
+  searchParams: Record<string, string>;
   totalPages: number;
 }) {
   if (totalPages <= 1) {
@@ -51,7 +48,7 @@ export function PlayerPagination({
             buttonVariants({ size: "sm", variant: "outline" }),
             page <= 1 && "pointer-events-none opacity-50",
           )}
-          href={pageHref(page - 1, query)}
+          href={pageHref(page - 1, searchParams)}
         >
           前へ
         </Link>
@@ -69,7 +66,7 @@ export function PlayerPagination({
                   size: "sm",
                   variant: visiblePage === page ? "default" : "outline",
                 })}
-                href={pageHref(visiblePage, query)}
+                href={pageHref(visiblePage, searchParams)}
               >
                 {visiblePage}
               </Link>
@@ -82,7 +79,7 @@ export function PlayerPagination({
             buttonVariants({ size: "sm", variant: "outline" }),
             page >= totalPages && "pointer-events-none opacity-50",
           )}
-          href={pageHref(page + 1, query)}
+          href={pageHref(page + 1, searchParams)}
         >
           次へ
         </Link>

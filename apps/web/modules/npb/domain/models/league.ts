@@ -1,3 +1,4 @@
+/** NPBのリーグ区分。 */
 export type League = "central" | "pacific";
 
 const CENTRAL_TEAMS = [

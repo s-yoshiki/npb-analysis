@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatNumber } from "@/lib/format";
-import type { PlayerListRow } from "@/lib/npb-db";
+import type { PlayerListItem } from "@/modules/npb/domain/models/player";
 
 function MobileMetric({ label, value }: { label: string; value: string }) {
   return (
@@ -30,7 +30,7 @@ function MobileMetric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PlayerMobileCards({ players }: { players: PlayerListRow[] }) {
+function PlayerMobileCards({ players }: { players: PlayerListItem[] }) {
   return (
     <div className="grid gap-3 md:hidden">
       {players.map((player) => (
@@ -39,7 +39,12 @@ function PlayerMobileCards({ players }: { players: PlayerListRow[] }) {
             <CardContent className="p-4">
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
-                  <strong className="block text-lg">{player.name}</strong>
+                  <div className="flex items-center gap-2">
+                    <strong className="block text-lg">{player.name}</strong>
+                    <Badge variant="secondary">
+                      {player.category === "pitching" ? "投手" : "野手"}
+                    </Badge>
+                  </div>
                   <span className="text-xs text-muted-foreground">
                     {player.kana || player.id}
                   </span>
@@ -70,7 +75,7 @@ function PlayerMobileCards({ players }: { players: PlayerListRow[] }) {
   );
 }
 
-function PlayerDesktopTable({ players }: { players: PlayerListRow[] }) {
+function PlayerDesktopTable({ players }: { players: PlayerListItem[] }) {
   return (
     <div className="hidden overflow-hidden rounded-xl border border-border/80 md:block">
       <Table>
@@ -105,8 +110,14 @@ function PlayerDesktopTable({ players }: { players: PlayerListRow[] }) {
                   href={`/players/${player.id}`}
                 >
                   <strong>{player.name}</strong>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="flex items-center gap-2 text-xs text-muted-foreground">
                     {player.kana || player.id}
+                    <Badge
+                      className="px-1.5 py-0 text-[10px]"
+                      variant="secondary"
+                    >
+                      {player.category === "pitching" ? "投手" : "野手"}
+                    </Badge>
                   </span>
                 </Link>
               </TableCell>
@@ -151,7 +162,7 @@ export function PlayerResults({
 }: {
   description?: string;
   pageSummary?: ReactNode;
-  players: PlayerListRow[];
+  players: PlayerListItem[];
   query: string;
   total?: number;
 }) {
@@ -159,7 +170,9 @@ export function PlayerResults({
     <Card className="bg-card/85">
       <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <CardTitle className="font-heading text-2xl font-black">選手一覧</CardTitle>
+          <CardTitle className="font-heading text-2xl font-black">
+            選手一覧
+          </CardTitle>
           <CardDescription>
             {description ??
               (query ? `「${query}」の検索結果` : "出場数順に表示")}

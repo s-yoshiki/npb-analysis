@@ -18,15 +18,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatNumber, formatRate } from "@/lib/format";
-import { formatLeague, type League } from "@/lib/league";
-import { getRankingSeasons, getRankings, getRankingTeams } from "@/lib/npb-db";
+import { npbQueryService } from "@/modules/npb/composition";
+import { formatLeague } from "@/modules/npb/domain/models/league";
 import {
   rankingMetrics,
   type RankingCategory,
+  type RankingLeague,
   type RankingMetric,
   type RankingProfileFilters,
   type RankingScope,
-} from "@/lib/rankings";
+} from "@/modules/npb/domain/services/ranking-service";
 
 export const dynamic = "force-dynamic";
 
@@ -42,18 +43,26 @@ function optionalNumber(value: string | undefined): number | undefined {
 
 export default async function RankingsPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {};
-  const seasons = getRankingSeasons();
+  const seasons = npbQueryService.getRankingSeasons();
   const category: RankingCategory =
     params.category === "pitching" ? "pitching" : "batting";
   const scope: RankingScope = params.scope === "career" ? "career" : "season";
-  const league: League = params.league === "pacific" ? "pacific" : "central";
+  const league: RankingLeague =
+    params.league === "central" || params.league === "pacific"
+      ? params.league
+      : "all";
   const availableMetrics = rankingMetrics[category];
   const metric = availableMetrics.some((item) => item.value === params.metric)
     ? (params.metric as RankingMetric)
     : availableMetrics[0]!.value;
   const season =
     Number(params.season) || seasons[0] || new Date().getFullYear();
-  const teams = getRankingTeams({ category, league, scope, season });
+  const teams = npbQueryService.getRankingTeams({
+    category,
+    league,
+    scope,
+    season,
+  });
   const team = teams.includes(params.team ?? "") ? params.team : undefined;
   const definition = availableMetrics.find((item) => item.value === metric)!;
   const filters: RankingProfileFilters = {
@@ -63,7 +72,9 @@ export default async function RankingsPage({ searchParams }: PageProps) {
         ? params.throws
         : undefined,
     bats:
-      params.bats === "right" || params.bats === "left" || params.bats === "both"
+      params.bats === "right" ||
+      params.bats === "left" ||
+      params.bats === "both"
         ? params.bats
         : undefined,
     school: params.school?.trim() || undefined,
@@ -78,28 +89,30 @@ export default async function RankingsPage({ searchParams }: PageProps) {
   const hasDetailedFilters = Object.values(filters).some(
     (value) => value !== undefined,
   );
-  const rows = getRankings({
-    category,
-    league,
-    metric,
-    scope,
-    season,
-    team,
-    filters,
-  }).slice(0, 100);
+  const rows = npbQueryService
+    .getRankings({
+      category,
+      league,
+      metric,
+      scope,
+      season,
+      team,
+      filters,
+    })
+    .slice(0, 100);
 
   return (
     <AppShell label="Rankings">
       <Card className="relative bg-card/85">
         <div className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-primary to-chart-2" />
-        <CardContent className="px-6 py-8 sm:px-10 sm:py-12">
+        <CardContent className="px-3 py-4 sm:px-5 sm:py-6">
           <Badge
             className="mb-5 border-primary/25 bg-primary/8 text-primary"
             variant="outline"
           >
             League leaderboard
           </Badge>
-          <h1 className="font-heading text-3xl font-black tracking-[-0.04em] sm:text-5xl">
+          <h1 className="font-heading text-3xl font-black tracking-[-0.04em] sm:text-3xl">
             ランキング
           </h1>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">
@@ -128,7 +141,8 @@ export default async function RankingsPage({ searchParams }: PageProps) {
         <CardHeader>
           <CardTitle className="font-heading text-2xl font-black">
             {scope === "season" ? `${season}年度` : "通算"}・
-            {team ?? formatLeague(league)} {definition.label}
+            {team ?? (league === "all" ? "全リーグ" : formatLeague(league))}{" "}
+            {definition.label}
           </CardTitle>
           <CardDescription>
             DB収録データを対象に上位100名を表示
@@ -164,7 +178,7 @@ export default async function RankingsPage({ searchParams }: PageProps) {
                     <TableCell className="text-right font-bold tabular-nums">
                       {definition.rate
                         ? formatRate(row.value)
-                        : formatNumber(row.value)}
+                        : formatNumber(row.value, definition.digits)}
                     </TableCell>
                   </TableRow>
                 ))}
