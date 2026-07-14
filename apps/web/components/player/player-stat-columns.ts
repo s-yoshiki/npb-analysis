@@ -1,7 +1,10 @@
-import type { BattingStatRow, PitchingStatRow } from "@/lib/npb-db";
+import type {
+  BattingStat,
+  PitchingStat,
+} from "@/modules/npb/domain/models/player";
 import type { StatColumn } from "./player-stat-table";
 
-export const battingColumns: StatColumn<BattingStatRow>[] = [
+export const battingColumns: StatColumn<BattingStat>[] = [
   { key: "season", label: "年度", type: "number" },
   { key: "team", label: "球団", type: "text" },
   { key: "games", label: "試合", type: "number" },
@@ -29,7 +32,7 @@ export const battingColumns: StatColumn<BattingStatRow>[] = [
   { key: "is_qualified", label: "規定打席", type: "qualification" },
 ];
 
-export const pitchingColumns: StatColumn<PitchingStatRow>[] = [
+export const pitchingColumns: StatColumn<PitchingStat>[] = [
   { key: "season", label: "年度", type: "number" },
   { key: "team", label: "球団", type: "text" },
   { key: "games", label: "登板", type: "number" },

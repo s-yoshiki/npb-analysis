@@ -17,7 +17,7 @@ import {
   type RankingMetric,
   type RankingProfileFilters,
   type RankingScope,
-} from "@/lib/rankings";
+} from "@/modules/npb/domain/services/ranking-service";
 
 type Props = {
   category: RankingCategory;

@@ -1,10 +1,10 @@
-import { hasDatabase } from "@/lib/npb-db";
+import { npbQueryService } from "@/modules/npb/composition";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 export function GET() {
-  const databaseReady = hasDatabase();
+  const databaseReady = npbQueryService.isDatabaseReady();
 
   return NextResponse.json(
     {

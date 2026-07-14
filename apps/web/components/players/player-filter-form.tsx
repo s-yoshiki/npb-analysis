@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { RotateCcw, Search, SlidersHorizontal } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import type { PlayerFilters } from "@/lib/npb-db";
+import type { PlayerFilters } from "@/modules/npb/domain/models/player";
 
 function RangeFields({
   fromName,

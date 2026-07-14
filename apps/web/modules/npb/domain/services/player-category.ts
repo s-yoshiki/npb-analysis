@@ -1,4 +1,4 @@
-import type { RankingCategory } from "./rankings";
+import type { RankingCategory } from "./ranking-service";
 
 export function getPrimaryPlayerCategory({
   battingPlateAppearances,

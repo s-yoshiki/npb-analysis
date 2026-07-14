@@ -1,9 +1,9 @@
-import { formatLeague } from "@/lib/league";
+import { formatLeague } from "@/modules/npb/domain/models/league";
 import {
   leagueRankMetrics,
   type LeagueRankCategory,
   type PlayerLeagueRank,
-} from "@/lib/player-league-ranks";
+} from "@/modules/npb/domain/services/league-ranking-service";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,

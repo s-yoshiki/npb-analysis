@@ -4,7 +4,8 @@ import { PlayerFilterForm } from "@/components/players/player-filter-form";
 import { PlayerPagination } from "@/components/players/player-pagination";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { getPlayersPage, type PlayerFilters } from "@/lib/npb-db";
+import type { PlayerFilters } from "@/modules/npb/domain/models/player";
+import { npbQueryService } from "@/modules/npb/composition";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +56,7 @@ export default async function PlayersPage({ searchParams }: PageProps) {
   };
   const hasFilters =
     query || Object.values(filters).some((value) => value !== undefined);
-  const result = getPlayersPage({
+  const result = npbQueryService.getPlayersPage({
     filters,
     page: requestedPage,
     pageSize: PAGE_SIZE,

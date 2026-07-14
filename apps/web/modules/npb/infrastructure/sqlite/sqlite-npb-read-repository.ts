@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
 import { DatabaseSync } from "node:sqlite";
-import { getLeague } from "./league";
+import type { NpbReadRepository } from "../../application/ports/npb-read-repository";
+import { getLeague } from "../../domain/models/league";
 import {
   buildRankings,
   type RankingCategory,
@@ -11,154 +12,28 @@ import {
   type RankingRow,
   type RankingScope,
   type RankingSourceRow,
-} from "./rankings";
+} from "../../domain/services/ranking-service";
 import {
   buildPlayerLeagueRanks,
   type LeagueRankSourceRow,
   type PlayerLeagueRank,
-} from "./player-league-ranks";
-export type { PlayerLeagueRank } from "./player-league-ranks";
+} from "../../domain/services/league-ranking-service";
+import type {
+  DatabaseSummary,
+  SeasonTrend,
+  TeamCount,
+} from "../../domain/models/dashboard";
+import type {
+  BattingStat,
+  PitchingStat,
+  PlayerDetail,
+  PlayerFilters,
+  PlayerListItem,
+  PlayerListPage,
+  PlayerProfile,
+} from "../../domain/models/player";
 
 const DB_PATH = path.join(process.cwd(), "data", "npb.sqlite");
-
-export type PlayerListRow = {
-  id: string;
-  name: string;
-  kana: string | null;
-  player_url: string;
-  is_active: number;
-  category: RankingCategory;
-  batting_seasons: number;
-  pitching_seasons: number;
-  games: number | null;
-  hits: number | null;
-  home_runs: number | null;
-  rbi: number | null;
-  wins: number | null;
-  era: number | null;
-};
-
-export type PlayersPage = {
-  players: PlayerListRow[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-};
-
-export type PlayerFilters = RankingProfileFilters & {
-  category?: RankingCategory;
-};
-
-export type Summary = {
-  players: number;
-  battingRows: number;
-  pitchingRows: number;
-  firstSeason: number | null;
-  lastSeason: number | null;
-  hitters: number;
-  pitchers: number;
-};
-
-export type SeasonTrend = {
-  season: number;
-  hitters: number;
-  pitchers: number;
-  homeRuns: number;
-  wins: number;
-};
-
-export type TeamCount = {
-  team: string;
-  players: number;
-};
-
-export type PlayerProfile = {
-  id: string;
-  name: string;
-  kana: string | null;
-  player_url: string;
-  is_active: number;
-  position: string | null;
-  bats_throws: string | null;
-  height_weight: string | null;
-  height_cm: number | null;
-  weight_kg: number | null;
-  birth_date: string | null;
-  birth_date_iso: string | null;
-  birth_year: number | null;
-  birth_month: number | null;
-  birth_day: number | null;
-  birth_place: string | null;
-  career: string | null;
-  draft: string | null;
-  detail_json: string;
-};
-
-export type BattingStatRow = {
-  season: number | null;
-  team: string | null;
-  games: number | null;
-  plate_appearances: number | null;
-  at_bats: number | null;
-  runs: number | null;
-  hits: number | null;
-  doubles: number | null;
-  triples: number | null;
-  home_runs: number | null;
-  total_bases: number | null;
-  rbi: number | null;
-  steals: number | null;
-  caught_stealing: number | null;
-  sacrifice_hits: number | null;
-  sacrifice_flies: number | null;
-  walks: number | null;
-  hit_by_pitch: number | null;
-  strikeouts: number | null;
-  grounded_into_double_plays: number | null;
-  batting_average: number | null;
-  on_base_percentage: number | null;
-  slugging_percentage: number | null;
-  ops: number | null;
-  is_qualified: number;
-  stats_json: string;
-};
-
-export type PitchingStatRow = {
-  season: number | null;
-  team: string | null;
-  games: number | null;
-  wins: number | null;
-  losses: number | null;
-  saves: number | null;
-  holds: number | null;
-  hold_points: number | null;
-  complete_games: number | null;
-  shutouts: number | null;
-  no_walk_complete_games: number | null;
-  winning_percentage: number | null;
-  batters_faced: number | null;
-  innings: number | null;
-  hits_allowed: number | null;
-  home_runs_allowed: number | null;
-  walks_allowed: number | null;
-  hit_by_pitch: number | null;
-  strikeouts: number | null;
-  wild_pitches: number | null;
-  balks: number | null;
-  runs_allowed: number | null;
-  earned_runs: number | null;
-  era: number | null;
-  whip: number | null;
-  is_qualified: number;
-  stats_json: string;
-};
-
-export type PlayerDetail = {
-  profile: PlayerProfile;
-  batting: BattingStatRow[];
-  pitching: PitchingStatRow[];
-};
 
 type ScalarRow = Record<string, number | null>;
 
@@ -194,11 +69,11 @@ const playerCategorySql = `
   END
 `;
 
-export function hasDatabase(): boolean {
+function hasDatabase(): boolean {
   return fs.existsSync(DB_PATH);
 }
 
-export function getSummary(): Summary {
+function getSummary(): DatabaseSummary {
   const db = openDb();
   if (!db) {
     return {
@@ -327,7 +202,7 @@ function getPlayerListWhere(query: string, filters: PlayerFilters = {}) {
   };
 }
 
-export function getPlayersPage({
+function getPlayersPage({
   page,
   pageSize,
   query,
@@ -337,7 +212,7 @@ export function getPlayersPage({
   pageSize: number;
   query: string;
   filters?: PlayerFilters;
-}): PlayersPage {
+}): PlayerListPage {
   const db = openDb();
   if (!db) {
     return {
@@ -419,7 +294,7 @@ export function getPlayersPage({
         LIMIT ? OFFSET ?
       `,
       )
-      .all(...params, safePageSize, offset) as PlayerListRow[];
+      .all(...params, safePageSize, offset) as PlayerListItem[];
 
     return {
       players,
@@ -433,11 +308,7 @@ export function getPlayersPage({
   }
 }
 
-export function getPlayers(query: string): PlayerListRow[] {
-  return getPlayersPage({ page: 1, pageSize: 80, query }).players;
-}
-
-export function getSeasonTrends(): SeasonTrend[] {
+function getSeasonTrends(): SeasonTrend[] {
   const db = openDb();
   if (!db) {
     return [];
@@ -488,7 +359,7 @@ export function getSeasonTrends(): SeasonTrend[] {
   }
 }
 
-export function getTopTeams(): TeamCount[] {
+function getTopTeams(): TeamCount[] {
   const db = openDb();
   if (!db) {
     return [];
@@ -515,7 +386,7 @@ export function getTopTeams(): TeamCount[] {
   }
 }
 
-export function getPlayerDetail(id: string): PlayerDetail | null {
+function getPlayerDetail(id: string): PlayerDetail | null {
   const db = openDb();
   if (!db) {
     return null;
@@ -604,7 +475,7 @@ export function getPlayerDetail(id: string): PlayerDetail | null {
         ORDER BY season ASC
       `,
       )
-      .all(id) as BattingStatRow[];
+      .all(id) as BattingStat[];
 
     const pitching = db
       .prepare(
@@ -649,7 +520,7 @@ export function getPlayerDetail(id: string): PlayerDetail | null {
         ORDER BY season ASC
       `,
       )
-      .all(id) as PitchingStatRow[];
+      .all(id) as PitchingStat[];
 
     return {
       profile,
@@ -701,7 +572,7 @@ function getRankingSources(db: DatabaseSync): {
   return { battingRows, pitchingRows };
 }
 
-export function getRankingSeasons(): number[] {
+function getRankingSeasons(): number[] {
   const db = openDb();
   if (!db) return [];
   try {
@@ -724,7 +595,7 @@ export function getRankingSeasons(): number[] {
   }
 }
 
-export function getRankings(options: {
+function getRankings(options: {
   category: RankingCategory;
   league: RankingLeague;
   metric: RankingMetric;
@@ -743,7 +614,7 @@ export function getRankings(options: {
   }
 }
 
-export function getRankingTeams(options: {
+function getRankingTeams(options: {
   category: RankingCategory;
   league: RankingLeague;
   scope: RankingScope;
@@ -775,7 +646,7 @@ export function getRankingTeams(options: {
   }
 }
 
-export function getPlayerLeagueRanks(playerId: string): PlayerLeagueRank[] {
+function getPlayerLeagueRanks(playerId: string): PlayerLeagueRank[] {
   const db = openDb();
   if (!db) return [];
   try {
@@ -789,3 +660,16 @@ export function getPlayerLeagueRanks(playerId: string): PlayerLeagueRank[] {
     db.close();
   }
 }
+
+export const sqliteNpbReadRepository = {
+  hasDatabase,
+  getSummary,
+  getSeasonTrends,
+  getTopTeams,
+  getPlayersPage,
+  getPlayerDetail,
+  getRankingSeasons,
+  getRankings,
+  getRankingTeams,
+  getPlayerLeagueRanks,
+} satisfies NpbReadRepository;

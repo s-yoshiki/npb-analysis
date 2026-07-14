@@ -5,7 +5,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { SeasonTrend, TeamCount } from "@/lib/npb-db";
+import type {
+  SeasonTrend,
+  TeamCount,
+} from "@/modules/npb/domain/models/dashboard";
 import { formatNumber } from "@/lib/format";
 
 export function SeasonSparkline({ trends }: { trends: SeasonTrend[] }) {

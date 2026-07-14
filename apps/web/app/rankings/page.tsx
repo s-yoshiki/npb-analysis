@@ -18,8 +18,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatNumber, formatRate } from "@/lib/format";
-import { formatLeague } from "@/lib/league";
-import { getRankingSeasons, getRankings, getRankingTeams } from "@/lib/npb-db";
+import { npbQueryService } from "@/modules/npb/composition";
+import { formatLeague } from "@/modules/npb/domain/models/league";
 import {
   rankingMetrics,
   type RankingCategory,
@@ -27,7 +27,7 @@ import {
   type RankingMetric,
   type RankingProfileFilters,
   type RankingScope,
-} from "@/lib/rankings";
+} from "@/modules/npb/domain/services/ranking-service";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +43,7 @@ function optionalNumber(value: string | undefined): number | undefined {
 
 export default async function RankingsPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {};
-  const seasons = getRankingSeasons();
+  const seasons = npbQueryService.getRankingSeasons();
   const category: RankingCategory =
     params.category === "pitching" ? "pitching" : "batting";
   const scope: RankingScope = params.scope === "career" ? "career" : "season";
@@ -57,7 +57,12 @@ export default async function RankingsPage({ searchParams }: PageProps) {
     : availableMetrics[0]!.value;
   const season =
     Number(params.season) || seasons[0] || new Date().getFullYear();
-  const teams = getRankingTeams({ category, league, scope, season });
+  const teams = npbQueryService.getRankingTeams({
+    category,
+    league,
+    scope,
+    season,
+  });
   const team = teams.includes(params.team ?? "") ? params.team : undefined;
   const definition = availableMetrics.find((item) => item.value === metric)!;
   const filters: RankingProfileFilters = {
@@ -84,15 +89,17 @@ export default async function RankingsPage({ searchParams }: PageProps) {
   const hasDetailedFilters = Object.values(filters).some(
     (value) => value !== undefined,
   );
-  const rows = getRankings({
-    category,
-    league,
-    metric,
-    scope,
-    season,
-    team,
-    filters,
-  }).slice(0, 100);
+  const rows = npbQueryService
+    .getRankings({
+      category,
+      league,
+      metric,
+      scope,
+      season,
+      team,
+      filters,
+    })
+    .slice(0, 100);
 
   return (
     <AppShell label="Rankings">

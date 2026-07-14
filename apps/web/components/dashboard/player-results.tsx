@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatNumber } from "@/lib/format";
-import type { PlayerListRow } from "@/lib/npb-db";
+import type { PlayerListItem } from "@/modules/npb/domain/models/player";
 
 function MobileMetric({ label, value }: { label: string; value: string }) {
   return (
@@ -30,7 +30,7 @@ function MobileMetric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PlayerMobileCards({ players }: { players: PlayerListRow[] }) {
+function PlayerMobileCards({ players }: { players: PlayerListItem[] }) {
   return (
     <div className="grid gap-3 md:hidden">
       {players.map((player) => (
@@ -75,7 +75,7 @@ function PlayerMobileCards({ players }: { players: PlayerListRow[] }) {
   );
 }
 
-function PlayerDesktopTable({ players }: { players: PlayerListRow[] }) {
+function PlayerDesktopTable({ players }: { players: PlayerListItem[] }) {
   return (
     <div className="hidden overflow-hidden rounded-xl border border-border/80 md:block">
       <Table>
@@ -162,7 +162,7 @@ export function PlayerResults({
 }: {
   description?: string;
   pageSummary?: ReactNode;
-  players: PlayerListRow[];
+  players: PlayerListItem[];
   query: string;
   total?: number;
 }) {

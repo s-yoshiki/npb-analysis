@@ -17,11 +17,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatNumber, formatRate } from "@/lib/format";
 import type {
-  BattingStatRow,
-  PitchingStatRow,
-  PlayerLeagueRank,
-} from "@/lib/npb-db";
-import type { RankingCategory } from "@/lib/rankings";
+  BattingStat,
+  PitchingStat,
+} from "@/modules/npb/domain/models/player";
+import type { PlayerLeagueRank } from "@/modules/npb/domain/services/league-ranking-service";
+import type { RankingCategory } from "@/modules/npb/domain/services/ranking-service";
 
 const battingMetrics: ChartMetric[] = [
   { key: "hits", label: "安打" },
@@ -44,7 +44,7 @@ const pitchingMetrics: ChartMetric[] = [
   { key: "whip", label: "WHIP" },
 ];
 
-function toBattingChart(rows: BattingStatRow[]): ChartPoint[] {
+function toBattingChart(rows: BattingStat[]): ChartPoint[] {
   return rows
     .filter((row) => row.season !== null)
     .map((row) => ({
@@ -60,7 +60,7 @@ function toBattingChart(rows: BattingStatRow[]): ChartPoint[] {
     }));
 }
 
-function toPitchingChart(rows: PitchingStatRow[]): ChartPoint[] {
+function toPitchingChart(rows: PitchingStat[]): ChartPoint[] {
   return rows
     .filter((row) => row.season !== null)
     .map((row) => ({
@@ -94,9 +94,9 @@ function CareerSummary({
   pitching,
   years,
 }: {
-  batting?: BattingStatRow;
+  batting?: BattingStat;
   category: RankingCategory;
-  pitching?: PitchingStatRow;
+  pitching?: PitchingStat;
   years: number;
 }) {
   const items =
@@ -160,13 +160,13 @@ export function PlayerPerformanceTabs({
   pitchingCareer,
   pitchingYears,
 }: {
-  batting: BattingStatRow[];
-  battingCareer?: BattingStatRow;
+  batting: BattingStat[];
+  battingCareer?: BattingStat;
   battingYears: number;
   defaultCategory: RankingCategory;
   leagueRanks: PlayerLeagueRank[];
-  pitching: PitchingStatRow[];
-  pitchingCareer?: PitchingStatRow;
+  pitching: PitchingStat[];
+  pitchingCareer?: PitchingStat;
   pitchingYears: number;
 }) {
   const initialCategory =

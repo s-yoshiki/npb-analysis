@@ -1,4 +1,4 @@
-import { getLeague, type League } from "./league";
+import { getLeague, type League } from "../models/league";
 
 export type RankingCategory = "batting" | "pitching";
 export type RankingLeague = League | "all";

@@ -9,22 +9,15 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatNumber } from "@/lib/format";
-import {
-  getSeasonTrends,
-  getSummary,
-  getTopTeams,
-  hasDatabase,
-} from "@/lib/npb-db";
+import { npbQueryService } from "@/modules/npb/composition";
 import Link from "next/link";
 import { ArrowRight, Database, Search, Sparkles } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const summary = getSummary();
-  const trends = getSeasonTrends();
-  const teams = getTopTeams();
-  const databaseReady = hasDatabase();
+  const { summary, teams, trends } = npbQueryService.getDashboard();
+  const databaseReady = npbQueryService.isDatabaseReady();
 
   return (
     <AppShell label="Dashboard">
