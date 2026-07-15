@@ -58,3 +58,48 @@ Deploy a newly generated SQLite database together with the application. Since
 the database is bundled into immutable container images, an existing ISR page
 can remain cached until its revalidation interval expires. Use a CloudFront
 invalidation when the new data must become visible immediately.
+
+## GitHub Actions deployment
+
+The `Deploy` workflow deploys pushes to `main` or `develop` and can also be run
+manually. It uses GitHub OIDC to assume an environment-specific AWS role,
+downloads the matching SQLite database from S3, validates the application, and
+runs `cdk deploy`.
+
+Create GitHub environments named `dev` and `prd`, and configure these
+environment variables in each environment:
+
+- `AWS_DEPLOY_ROLE_ARN`: ARN of the IAM role trusted by GitHub OIDC
+- `NPB_DATABASE_S3_URI`: database location, for example
+  `s3://npb-analysis-deploy-data-654248427729-ap-northeast-1/dev/npb.sqlite`
+- `AWS_REGION`: optional; defaults to `ap-northeast-1`
+
+Use separate roles and database objects for each environment. The role trust
+policy should restrict GitHub's OIDC subject to this repository and its GitHub
+environment (`dev` is shown below):
+
+```json
+{
+  "Effect": "Allow",
+  "Principal": {
+    "Federated": "arn:aws:iam::<account-id>:oidc-provider/token.actions.githubusercontent.com"
+  },
+  "Action": "sts:AssumeRoleWithWebIdentity",
+  "Condition": {
+    "StringEquals": {
+      "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+      "token.actions.githubusercontent.com:sub": "repo:<owner>/<repository>:environment:dev"
+    }
+  }
+}
+```
+
+Grant the role read access to the configured database object and permission to
+deploy through the CDK bootstrap roles. Bootstrap the target account and region
+once before running the workflow. GitHub does not need long-lived AWS access
+keys.
+
+Pushes to `develop` deploy `dev`, while pushes to `main` deploy `prd`. Manual
+runs require selecting either environment. CDK creates separate
+`DevNpbAnalysisWebStack` and `PrdNpbAnalysisWebStack` stacks in the same AWS
+account. For local deployment, set `DEPLOY_ENV=dev` or `DEPLOY_ENV=prd`.

@@ -30,6 +30,11 @@ const sourceDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(sourceDirectory, "../../..");
 const webDirectory = path.join(repositoryRoot, "apps/web");
 const databasePath = path.join(webDirectory, "data/npb.sqlite");
+const deployEnvironment = process.env.DEPLOY_ENV ?? "dev";
+
+if (deployEnvironment !== "dev" && deployEnvironment !== "prd") {
+  throw new Error(`DEPLOY_ENV must be dev or prd, received: ${deployEnvironment}`);
+}
 
 class NpbAnalysisWebStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -98,16 +103,21 @@ class NpbAnalysisWebStack extends Stack {
 }
 
 const app = new App();
-const stack = new NpbAnalysisWebStack(app, "NpbAnalysisWebStack", {
-  env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: process.env.CDK_DEFAULT_REGION ?? "ap-northeast-1",
+const stack = new NpbAnalysisWebStack(
+  app,
+  `${deployEnvironment === "prd" ? "Prd" : "Dev"}NpbAnalysisWebStack`,
+  {
+    env: {
+      account: process.env.CDK_DEFAULT_ACCOUNT,
+      region: process.env.CDK_DEFAULT_REGION ?? "ap-northeast-1",
+    },
+    description:
+      `NPB analysis ${deployEnvironment} - Next.js ISR and player search API`,
   },
-  description:
-    "Next.js ISR on CloudFront and Lambda with a separate player search API",
-});
+);
 
 Tags.of(stack).add("Application", "npb-analysis");
+Tags.of(stack).add("Environment", deployEnvironment);
 Tags.of(stack).add("ManagedBy", "aws-cdk");
 
 app.synth();
