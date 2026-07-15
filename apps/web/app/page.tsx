@@ -13,8 +13,6 @@ import { npbQueryService } from "@/modules/npb/composition";
 import Link from "next/link";
 import { ArrowRight, Database, Search, Sparkles } from "lucide-react";
 
-export const dynamic = "force-dynamic";
-
 export default async function Home() {
   const { summary, teams, trends } = npbQueryService.getDashboard();
   const databaseReady = npbQueryService.isDatabaseReady();

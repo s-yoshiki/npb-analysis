@@ -1,8 +1,9 @@
 # AWS infrastructure
 
-This package deploys `apps/web` with `cdk-nextjs` using CloudFront, S3, and a
-Lambda container. The generated SQLite database is included in the immutable
-Lambda image and opened read-only by the web application.
+This package deploys the site as static assets on a private S3 bucket behind
+CloudFront. Requests under `/api/*` are routed to an IAM-protected Lambda
+Function URL through CloudFront Origin Access Control. The Lambda container
+bundles `apps/web/data/npb.sqlite` and opens it read-only.
 
 ## Prerequisites
 
@@ -24,24 +25,24 @@ AWS_PROFILE=your-profile pnpm --filter @npb-analysis/infra run diff
 AWS_PROFILE=your-profile pnpm --filter @npb-analysis/infra run deploy
 ```
 
-The region defaults to `ap-northeast-1`. Set `AWS_REGION` or the profile region
-to deploy elsewhere. The deployment prints the CloudFront URL as `WebUrl`.
-The Lambda architecture follows the build machine so that native Sharp binaries
-match the container. Use an ARM64 build runner when you want a Graviton Lambda.
+The deployment command validates SQLite, builds the Next.js static export,
+builds the immutable Lambda image, uploads the static output to S3, and
+invalidates CloudFront. The region defaults to `ap-northeast-1`. The stack
+outputs the CloudFront URL as `WebUrl`.
 
-## Daily data deployment
+## Data deployment
 
-Run the scraper, then deploy the new immutable image:
+Run the scraper and deploy both matching artifacts together:
 
 ```sh
 pnpm --filter npb-analysis run scrape -- --delay 300
 AWS_PROFILE=your-profile pnpm --filter @npb-analysis/infra run deploy
 ```
 
-Before synthesis and deployment, `prepare-database` checkpoints WAL, switches
-the database to the `DELETE` journal mode, runs `PRAGMA integrity_check`, and
-checks that player records exist. A failed check stops the deployment and leaves
-the current Lambda image untouched.
+`prepare-database` checkpoints WAL, switches SQLite to `DELETE` journal mode,
+runs `PRAGMA integrity_check`, and verifies that player records exist. A failed
+check stops deployment before the Lambda image or static site is replaced.
 
-`cdk-nextjs` is experimental. Its version is intentionally pinned in
-`package.json`; review release notes and run `synth` before upgrading it.
+Player search and player detail are rendered client-side from `/api/players`.
+CloudFront internally rewrites `/players/{id}/` to the single static player
+detail shell, so the build does not generate thousands of player pages.

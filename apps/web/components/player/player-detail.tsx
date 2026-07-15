@@ -1,29 +1,21 @@
-import type { Metadata } from "next";
+"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
+import { useEffect, useState } from "react";
 import { PlayerPerformanceTabs } from "@/components/player/player-performance-tabs";
 import { PlayerProfileCard } from "@/components/player/player-profile-card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { sumNumeric } from "@/lib/format";
-import {
-  type BattingStat,
-  type PitchingStat,
+import type {
+  BattingStat,
+  PitchingStat,
+  PlayerDetail as PlayerDetailModel,
 } from "@/modules/npb/domain/models/player";
-import { npbQueryService } from "@/modules/npb/composition";
 import { getPrimaryPlayerCategory } from "@/modules/npb/domain/services/player-category";
 
-export const dynamic = "force-dynamic";
-
-type PageProps = {
-  params: Promise<{
-    id: string;
-  }>;
-};
-
-function ratio(numerator: number, denominator: number): number | null {
+function ratio(numerator: number, denominator: number) {
   return denominator > 0 ? numerator / denominator : null;
 }
 
@@ -39,7 +31,6 @@ function getBattingCareer(rows: BattingStat[]): BattingStat {
     atBats + walks + hitByPitch + sacrificeFlies,
   );
   const sluggingPercentage = ratio(total("total_bases"), atBats);
-
   return {
     season: null,
     team: "全所属",
@@ -80,7 +71,6 @@ function getPitchingCareer(rows: PitchingStat[]): PitchingStat {
   const innings = total("innings");
   const hitsAllowed = total("hits_allowed");
   const walksAllowed = total("walks_allowed");
-
   return {
     season: null,
     team: "全所属",
@@ -112,35 +102,57 @@ function getPitchingCareer(rows: PitchingStat[]): PitchingStat {
   };
 }
 
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
-  const { id } = await params;
-  const detail = npbQueryService.getPlayerDetail(id);
+export function PlayerDetail() {
+  const [detail, setDetail] = useState<PlayerDetailModel>();
+  const [error, setError] = useState<string>();
 
-  return {
-    title: detail
-      ? `${detail.profile.name} | NPB Analysis`
-      : "Player | NPB Analysis",
-  };
-}
+  useEffect(() => {
+    const id = window.location.pathname.split("/").filter(Boolean).at(-1);
+    if (!id || id === "detail") {
+      setError("選手IDが指定されていません。");
+      return;
+    }
+    const controller = new AbortController();
+    fetch(`/api/players/${encodeURIComponent(id)}`, {
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (response.status === 404) throw new Error("not-found");
+        if (!response.ok) throw new Error(String(response.status));
+        return response.json() as Promise<PlayerDetailModel>;
+      })
+      .then((value) => {
+        setDetail(value);
+        document.title = `${value.profile.name} | NPB Analysis`;
+      })
+      .catch((cause: unknown) => {
+        if (cause instanceof DOMException && cause.name === "AbortError")
+          return;
+        setError(
+          cause instanceof Error && cause.message === "not-found"
+            ? "選手が見つかりません。"
+            : "選手情報を取得できませんでした。",
+        );
+      });
+    return () => controller.abort();
+  }, []);
 
-export default async function PlayerPage({ params }: PageProps) {
-  const { id } = await params;
-  const result = npbQueryService.getPlayer(id);
+  if (error)
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">{error}</CardContent>
+      </Card>
+    );
+  if (!detail)
+    return (
+      <Card>
+        <CardContent className="py-12 text-center text-muted-foreground">
+          選手情報を読み込んでいます。
+        </CardContent>
+      </Card>
+    );
 
-  if (!result) {
-    notFound();
-  }
-
-  const { detail, leagueRanks } = result;
   const { profile, batting, pitching } = detail;
-  const battingYears = batting.filter((row) => row.season !== null).length;
-  const pitchingYears = pitching.filter((row) => row.season !== null).length;
-  const battingCareer = batting.length ? getBattingCareer(batting) : undefined;
-  const pitchingCareer = pitching.length
-    ? getPitchingCareer(pitching)
-    : undefined;
   const defaultCategory = getPrimaryPlayerCategory({
     battingPlateAppearances: sumNumeric(batting, "plate_appearances"),
     hasBatting: batting.length > 0,
@@ -148,19 +160,12 @@ export default async function PlayerPage({ params }: PageProps) {
     pitchingInnings: sumNumeric(pitching, "innings"),
     position: profile.position,
   });
-  const serializableBatting = batting.map((row) => ({ ...row }));
-  const serializablePitching = pitching.map((row) => ({ ...row }));
-  const serializableLeagueRanks = leagueRanks.map((row) => ({
-    ...row,
-    metrics: { ...row.metrics },
-  }));
 
   return (
-    <AppShell label="Player File">
+    <>
       <Card className="relative overflow-hidden border-0 bg-[linear-gradient(135deg,var(--foreground)_0%,oklch(0.3_0.1_245)_100%)] text-background ring-1 ring-white/10">
         <div className="absolute -right-12 -top-20 size-72 rounded-full bg-primary/35 blur-3xl" />
-        <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px)] [background-size:40px_40px]" />
-        <CardContent className="px-6 py-8 sm:px-10 sm:py-12">
+        <CardContent className="relative px-6 py-8 sm:px-10 sm:py-12">
           <Link
             className={buttonVariants({
               className:
@@ -207,19 +212,19 @@ export default async function PlayerPage({ params }: PageProps) {
           </div>
         </CardContent>
       </Card>
-
       <PlayerProfileCard detailJson={profile.detail_json} />
-
       <PlayerPerformanceTabs
-        batting={serializableBatting}
-        battingCareer={battingCareer}
-        battingYears={battingYears}
+        batting={batting}
+        battingCareer={batting.length ? getBattingCareer(batting) : undefined}
+        battingYears={batting.filter((row) => row.season !== null).length}
         defaultCategory={defaultCategory}
-        leagueRanks={serializableLeagueRanks}
-        pitching={serializablePitching}
-        pitchingCareer={pitchingCareer}
-        pitchingYears={pitchingYears}
+        leagueRanks={[]}
+        pitching={pitching}
+        pitchingCareer={
+          pitching.length ? getPitchingCareer(pitching) : undefined
+        }
+        pitchingYears={pitching.filter((row) => row.season !== null).length}
       />
-    </AppShell>
+    </>
   );
 }

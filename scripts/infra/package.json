@@ -6,15 +6,14 @@
   "scripts": {
     "bootstrap": "cdk bootstrap",
     "check-types": "tsc --noEmit",
-    "deploy": "pnpm run prepare-database && cdk deploy --require-approval never",
+    "deploy": "pnpm run prepare-database && pnpm --filter web run build && cdk deploy --require-approval never",
     "destroy": "cdk destroy",
-    "diff": "pnpm run prepare-database && cdk diff",
+    "diff": "pnpm run prepare-database && pnpm --filter web run build && cdk diff",
     "prepare-database": "tsx src/prepare-database.ts",
-    "synth": "pnpm run prepare-database && cdk synth"
+    "synth": "pnpm run prepare-database && pnpm --filter web run build && cdk synth"
   },
   "dependencies": {
     "aws-cdk-lib": "2.261.0",
-    "cdk-nextjs": "0.5.4",
     "constructs": "10.5.1"
   },
   "devDependencies": {

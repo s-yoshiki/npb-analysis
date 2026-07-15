@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
-import { RankingFilterForm } from "@/components/rankings/ranking-filter-form";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -19,85 +17,20 @@ import {
 } from "@/components/ui/table";
 import { formatNumber, formatRate } from "@/lib/format";
 import { npbQueryService } from "@/modules/npb/composition";
-import { formatLeague } from "@/modules/npb/domain/models/league";
-import {
-  rankingMetrics,
-  type RankingCategory,
-  type RankingLeague,
-  type RankingMetric,
-  type RankingProfileFilters,
-  type RankingScope,
-} from "@/modules/npb/domain/services/ranking-service";
+import { rankingMetrics } from "@/modules/npb/domain/services/ranking-service";
 
-export const dynamic = "force-dynamic";
-
-type PageProps = {
-  searchParams?: Promise<Record<string, string | undefined>>;
-};
-
-function optionalNumber(value: string | undefined): number | undefined {
-  if (!value?.trim()) return undefined;
-  const number = Number(value);
-  return Number.isFinite(number) ? number : undefined;
-}
-
-export default async function RankingsPage({ searchParams }: PageProps) {
-  const params = (await searchParams) ?? {};
+export default function RankingsPage() {
   const seasons = npbQueryService.getRankingSeasons();
-  const category: RankingCategory =
-    params.category === "pitching" ? "pitching" : "batting";
-  const scope: RankingScope = params.scope === "career" ? "career" : "season";
-  const league: RankingLeague =
-    params.league === "central" || params.league === "pacific"
-      ? params.league
-      : "all";
-  const availableMetrics = rankingMetrics[category];
-  const metric = availableMetrics.some((item) => item.value === params.metric)
-    ? (params.metric as RankingMetric)
-    : availableMetrics[0]!.value;
-  const season =
-    Number(params.season) || seasons[0] || new Date().getFullYear();
-  const teams = npbQueryService.getRankingTeams({
-    category,
-    league,
-    scope,
-    season,
-  });
-  const team = teams.includes(params.team ?? "") ? params.team : undefined;
-  const definition = availableMetrics.find((item) => item.value === metric)!;
-  const filters: RankingProfileFilters = {
-    name: params.name?.trim() || undefined,
-    throws:
-      params.throws === "right" || params.throws === "left"
-        ? params.throws
-        : undefined,
-    bats:
-      params.bats === "right" ||
-      params.bats === "left" ||
-      params.bats === "both"
-        ? params.bats
-        : undefined,
-    school: params.school?.trim() || undefined,
-    draftYearMin: optionalNumber(params.draftYearMin),
-    draftYearMax: optionalNumber(params.draftYearMax),
-    draftRank: params.draftRank?.trim() || undefined,
-    birthYearMin: optionalNumber(params.birthYearMin),
-    birthYearMax: optionalNumber(params.birthYearMax),
-    heightMin: optionalNumber(params.heightMin),
-    heightMax: optionalNumber(params.heightMax),
-  };
-  const hasDetailedFilters = Object.values(filters).some(
-    (value) => value !== undefined,
-  );
+  const season = seasons[0] ?? new Date().getFullYear();
+  const definition = rankingMetrics.batting[0];
+  if (!definition) return null;
   const rows = npbQueryService
     .getRankings({
-      category,
-      league,
-      metric,
-      scope,
+      category: "batting",
+      league: "all",
+      metric: definition.value,
+      scope: "season",
       season,
-      team,
-      filters,
     })
     .slice(0, 100);
 
@@ -122,31 +55,12 @@ export default async function RankingsPage({ searchParams }: PageProps) {
       </Card>
 
       <Card className="bg-card/85">
-        <CardContent className="py-6">
-          <RankingFilterForm
-            category={category}
-            filters={filters}
-            league={league}
-            metric={metric}
-            scope={scope}
-            season={season}
-            seasons={seasons}
-            team={team}
-            teams={teams}
-          />
-        </CardContent>
-      </Card>
-
-      <Card className="bg-card/85">
         <CardHeader>
           <CardTitle className="font-heading text-2xl font-black">
-            {scope === "season" ? `${season}年度` : "通算"}・
-            {team ?? (league === "all" ? "全リーグ" : formatLeague(league))}{" "}
-            {definition.label}
+            {season}年度・全リーグ {definition.label}
           </CardTitle>
           <CardDescription>
-            DB収録データを対象に上位100名を表示
-            {hasDetailedFilters ? "（詳細条件で絞り込み中）" : ""}
+            DB収録データを対象に上位100名を表示（データ更新時に再生成）
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -168,12 +82,12 @@ export default async function RankingsPage({ searchParams }: PageProps) {
                       {row.rank}
                     </TableCell>
                     <TableCell>
-                      <Link
+                      <a
                         className="font-bold hover:text-primary"
-                        href={`/players/${row.playerId}`}
+                        href={`/players/${row.playerId}/`}
                       >
                         {row.name}
-                      </Link>
+                      </a>
                     </TableCell>
                     <TableCell className="text-right font-bold tabular-nums">
                       {definition.rate

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -34,7 +33,7 @@ function PlayerMobileCards({ players }: { players: PlayerListItem[] }) {
   return (
     <div className="grid gap-3 md:hidden">
       {players.map((player) => (
-        <Link href={`/players/${player.id}`} key={player.id}>
+        <a href={`/players/${player.id}/`} key={player.id}>
           <Card className="bg-card/85 transition-all hover:-translate-y-0.5 hover:border-primary/30">
             <CardContent className="p-4">
               <div className="mb-3 flex items-start justify-between gap-3">
@@ -69,7 +68,7 @@ function PlayerMobileCards({ players }: { players: PlayerListItem[] }) {
               </div>
             </CardContent>
           </Card>
-        </Link>
+        </a>
       ))}
     </div>
   );
@@ -105,9 +104,9 @@ function PlayerDesktopTable({ players }: { players: PlayerListItem[] }) {
           {players.map((player) => (
             <TableRow key={player.id}>
               <TableCell>
-                <Link
+                <a
                   className="grid gap-0.5 transition-colors hover:text-primary"
-                  href={`/players/${player.id}`}
+                  href={`/players/${player.id}/`}
                 >
                   <strong>{player.name}</strong>
                   <span className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -119,7 +118,7 @@ function PlayerDesktopTable({ players }: { players: PlayerListItem[] }) {
                       {player.category === "pitching" ? "投手" : "野手"}
                     </Badge>
                   </span>
-                </Link>
+                </a>
               </TableCell>
               <TableCell className="text-right tabular-nums">
                 {formatNumber(player.batting_seasons)}
