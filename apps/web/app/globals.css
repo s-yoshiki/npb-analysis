@@ -138,10 +138,24 @@ a {
   body {
     @apply bg-background text-foreground antialiased;
     background-image:
-      radial-gradient(circle at 8% 0%, color-mix(in oklab, var(--primary) 12%, transparent), transparent 32rem),
-      linear-gradient(color-mix(in oklab, var(--primary) 4%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in oklab, var(--primary) 4%, transparent) 1px, transparent 1px);
-    background-size: auto, 32px 32px, 32px 32px;
+      radial-gradient(
+        circle at 8% 0%,
+        color-mix(in oklab, var(--primary) 12%, transparent),
+        transparent 32rem
+      ),
+      linear-gradient(
+        color-mix(in oklab, var(--primary) 4%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        color-mix(in oklab, var(--primary) 4%, transparent) 1px,
+        transparent 1px
+      );
+    background-size:
+      auto,
+      32px 32px,
+      32px 32px;
     background-attachment: fixed;
   }
   button:not(:disabled),
@@ -163,7 +177,9 @@ a {
   }
 }
 
-::selection { background: color-mix(in oklab, var(--primary) 22%, transparent); }
+::selection {
+  background: color-mix(in oklab, var(--primary) 22%, transparent);
+}
 
 ::-webkit-scrollbar {
   width: 10px;

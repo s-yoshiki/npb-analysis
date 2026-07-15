@@ -52,7 +52,7 @@ pnpm --filter npb-analysis exec tsx src/main.ts \
 - `apps/web`: Next.js dashboard. Tailwind CSSでUIを構築し、Node.js 26の `node:sqlite` でDBを読みます。
 - `scripts/parser`: NPB公式サイトのスクレイパーとSQLite writer。
 - `packages/ui`: Turborepo starter由来の共有UIパッケージ。
-- `packages/eslint-config`: 共有ESLint設定。
+- `biome.json`: リポジトリ共通のフォーマット・lint設定。
 - `packages/typescript-config`: 共有TypeScript設定。
 
 ## Verification

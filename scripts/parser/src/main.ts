@@ -113,7 +113,9 @@ async function main() {
       console.log(`Scraping ${pageUrl}`);
       const pageHtml = await fetchHtml(pageUrl);
       const pageUrls = parsePlayerUrlsFromKanaPage(pageHtml, pageUrl);
-      pageUrls.forEach((playerUrl) => urls.add(playerUrl));
+      pageUrls.forEach((playerUrl) => {
+        urls.add(playerUrl);
+      });
       console.log(`  found ${pageUrls.length} players (total ${urls.size})`);
       if (options.debug) {
         console.log(`  [debug] sample=${pageUrls.slice(0, 3).join(", ")}`);
