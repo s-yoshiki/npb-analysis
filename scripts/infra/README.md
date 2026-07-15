@@ -1,9 +1,13 @@
 # AWS infrastructure
 
-This package deploys the site as static assets on a private S3 bucket behind
-CloudFront. Requests under `/api/*` are routed to an IAM-protected Lambda
-Function URL through CloudFront Origin Access Control. The Lambda container
-bundles `apps/web/data/npb.sqlite` and opens it read-only.
+This package deploys the Next.js app with `cdk-nextjs` behind CloudFront. Pages
+are rendered by Lambda and use Next.js Incremental Static Regeneration (ISR).
+The generated page cache is stored in S3, while the revalidation state is kept
+in DynamoDB.
+
+Requests under `/api/*` are routed to a separate IAM-protected Lambda Function
+URL through CloudFront Origin Access Control. Both Lambda containers bundle
+`apps/web/data/npb.sqlite` and open it read-only.
 
 ## Prerequisites
 
@@ -25,10 +29,10 @@ AWS_PROFILE=your-profile pnpm --filter @npb-analysis/infra run diff
 AWS_PROFILE=your-profile pnpm --filter @npb-analysis/infra run deploy
 ```
 
-The deployment command validates SQLite, builds the Next.js static export,
-builds the immutable Lambda image, uploads the static output to S3, and
-invalidates CloudFront. The region defaults to `ap-northeast-1`. The stack
-outputs the CloudFront URL as `WebUrl`.
+The deployment command validates SQLite, builds the Next.js application and
+both immutable Lambda images, uploads the build artifacts, and deploys the ISR
+cache resources. The region defaults to `ap-northeast-1`. The stack outputs
+the CloudFront URL as `WebUrl`.
 
 ## Data deployment
 
@@ -43,6 +47,14 @@ AWS_PROFILE=your-profile pnpm --filter @npb-analysis/infra run deploy
 runs `PRAGMA integrity_check`, and verifies that player records exist. A failed
 check stops deployment before the Lambda image or static site is replaced.
 
-Player search and player detail are rendered client-side from `/api/players`.
-CloudFront internally rewrites `/players/{id}/` to the single static player
-detail shell, so the build does not generate thousands of player pages.
+Player search remains client-rendered and reads `/api/players`. Player detail
+pages are rendered by Next.js from the bundled SQLite database. Their
+`generateStaticParams()` intentionally returns an empty array, so the build
+does not generate all player pages; each `/players/{id}` page is generated on
+its first request and then cached by ISR for seven days. The home and rankings
+pages use a one-day revalidation interval.
+
+Deploy a newly generated SQLite database together with the application. Since
+the database is bundled into immutable container images, an existing ISR page
+can remain cached until its revalidation interval expires. Use a CloudFront
+invalidation when the new data must become visible immediately.

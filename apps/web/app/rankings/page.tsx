@@ -19,6 +19,8 @@ import { formatNumber, formatRate } from "@/lib/format";
 import { npbQueryService } from "@/modules/npb/composition";
 import { rankingMetrics } from "@/modules/npb/domain/services/ranking-service";
 
+export const revalidate = 86400;
+
 export default function RankingsPage() {
   const seasons = npbQueryService.getRankingSeasons();
   const season = seasons[0] ?? new Date().getFullYear();

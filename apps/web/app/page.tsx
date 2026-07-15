@@ -1,3 +1,5 @@
+import { ArrowRight, Database, Search, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import {
   SeasonSparkline,
@@ -10,8 +12,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatNumber } from "@/lib/format";
 import { npbQueryService } from "@/modules/npb/composition";
-import Link from "next/link";
-import { ArrowRight, Database, Search, Sparkles } from "lucide-react";
+
+export const revalidate = 86400;
 
 export default async function Home() {
   const { summary, teams, trends } = npbQueryService.getDashboard();
