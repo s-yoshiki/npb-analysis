@@ -39,11 +39,11 @@ yarn-error.log*
 
 .next
 
-# Generated NPB data
-apps/web/data/*.sqlite
+# NPB database is versioned; journals and temporary databases are not.
 apps/web/data/*.sqlite-*
 
 
 .pnpm-store
 *.sqlite
 *.sqlite-*
+!apps/web/data/npb.sqlite

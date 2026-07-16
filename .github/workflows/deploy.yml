@@ -56,14 +56,6 @@ jobs:
           role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION || 'ap-northeast-1' }}
 
-      - name: Download SQLite database
-        env:
-          DATABASE_S3_URI: ${{ vars.NPB_DATABASE_S3_URI }}
-        run: |
-          test -n "$DATABASE_S3_URI"
-          mkdir -p apps/web/data
-          aws s3 cp "$DATABASE_S3_URI" apps/web/data/npb.sqlite
-
       - name: Validate application
         run: |
           pnpm --filter web run lint
