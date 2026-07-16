@@ -1,9 +1,17 @@
-import { createServer } from "node:http";
+import { existsSync } from "node:fs";
 import path from "node:path";
-import { DatabaseSync } from "node:sqlite";
+import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 
+const bundledDatabasePath = path.join(import.meta.dirname, "data/npb.sqlite");
+const localDatabasePath = path.resolve(
+  import.meta.dirname,
+  "../../web/data/npb.sqlite",
+);
 const databasePath =
-  process.env.NPB_DB_PATH ?? path.join(import.meta.dirname, "data/npb.sqlite");
+  process.env.NPB_DB_PATH ??
+  (existsSync(bundledDatabasePath)
+    ? bundledDatabasePath
+    : localDatabasePath);
 const db = new DatabaseSync(databasePath, { readOnly: true });
 db.exec("PRAGMA query_only=ON; PRAGMA temp_store=MEMORY");
 
@@ -23,20 +31,23 @@ const playerCategorySql = `
   END
 `;
 
-function likeQuery(value) {
+function likeQuery(value: string): string {
   return `%${value.replace(/[%_]/g, "\\$&")}%`;
 }
 
-function optionalNumber(params, name) {
+function optionalNumber(
+  params: URLSearchParams,
+  name: string,
+): number | undefined {
   const value = params.get(name);
   if (!value) return undefined;
   const number = Number(value);
   return Number.isFinite(number) ? number : undefined;
 }
 
-function buildWhere(params) {
-  const conditions = [];
-  const values = [];
+function buildWhere(params: URLSearchParams) {
+  const conditions: string[] = [];
+  const values: SQLInputValue[] = [];
   const query = (params.get("q") ?? "").trim().slice(0, 100);
   if (query) {
     conditions.push("(p.name LIKE ? ESCAPE '\\' OR p.kana LIKE ? ESCAPE '\\')");
@@ -66,14 +77,15 @@ function buildWhere(params) {
     values.push(likeQuery(school));
   }
 
-  for (const [name, column, operator] of [
+  const numericFilters = [
     ["draftYearMin", "CAST(substr(p.draft, 1, 4) AS INTEGER)", ">="],
     ["draftYearMax", "CAST(substr(p.draft, 1, 4) AS INTEGER)", "<="],
     ["birthYearMin", "p.birth_year", ">="],
     ["birthYearMax", "p.birth_year", "<="],
     ["heightMin", "p.height_cm", ">="],
     ["heightMax", "p.height_cm", "<="],
-  ]) {
+  ] as const;
+  for (const [name, column, operator] of numericFilters) {
     const value = optionalNumber(params, name);
     if (value !== undefined) {
       conditions.push(`${column} ${operator} ?`);
@@ -96,7 +108,7 @@ function buildWhere(params) {
   };
 }
 
-export function searchPlayers(params) {
+export function searchPlayers(params: URLSearchParams) {
   const requestedPage = Math.max(
     1,
     Number.parseInt(params.get("page") ?? "1", 10) || 1,
@@ -106,9 +118,10 @@ export function searchPlayers(params) {
     Math.min(100, Number.parseInt(params.get("pageSize") ?? "40", 10) || 40),
   );
   const { query, values, where } = buildWhere(params);
-  const total = db
+  const totalRow = db
     .prepare(`SELECT COUNT(*) AS total FROM players p ${where}`)
-    .get(...values).total;
+    .get(...values) as { total: number } | undefined;
+  const total = totalRow?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const page = Math.min(requestedPage, totalPages);
   const offset = (page - 1) * pageSize;
@@ -141,7 +154,7 @@ export function searchPlayers(params) {
   return { players, total, page, pageSize, totalPages, query };
 }
 
-export function getPlayerDetail(id) {
+export function getPlayerDetail(id: string) {
   const activeSelect = hasActiveColumn ? "is_active" : "0 AS is_active";
   const profile = db
     .prepare(`
@@ -186,42 +199,4 @@ export function getPlayerDetail(id) {
   `)
     .all(id);
   return { profile, batting, pitching };
-}
-
-function sendJson(response, status, body, cacheControl = "no-store") {
-  response.writeHead(status, {
-    "cache-control": cacheControl,
-    "content-type": "application/json; charset=utf-8",
-    "x-content-type-options": "nosniff",
-  });
-  response.end(JSON.stringify(body));
-}
-
-const server = createServer((request, response) => {
-  try {
-    const url = new URL(request.url ?? "/", "http://localhost");
-    if (request.method === "GET" && url.pathname === "/api/health") {
-      return sendJson(response, 200, { status: "ok" }, "public, max-age=60");
-    }
-    if (request.method === "GET" && url.pathname === "/api/players") {
-      return sendJson(response, 200, searchPlayers(url.searchParams));
-    }
-    const detailMatch = url.pathname.match(
-      /^\/api\/players\/([A-Za-z0-9_-]+)$/,
-    );
-    if (request.method === "GET" && detailMatch) {
-      const detail = getPlayerDetail(detailMatch[1]);
-      return detail
-        ? sendJson(response, 200, detail, "public, max-age=300")
-        : sendJson(response, 404, { error: "Player not found" });
-    }
-    return sendJson(response, 404, { error: "Not found" });
-  } catch (error) {
-    console.error(error);
-    return sendJson(response, 500, { error: "Internal server error" });
-  }
-});
-
-if (process.env.NPB_API_NO_LISTEN !== "1") {
-  server.listen(Number(process.env.PORT ?? 8080), "0.0.0.0");
 }

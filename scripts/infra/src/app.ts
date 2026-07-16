@@ -19,9 +19,10 @@ import {
 import { FunctionUrlOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 import { ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import {
-  DockerImageCode,
-  DockerImageFunction,
+  Code,
+  Function as LambdaFunction,
   FunctionUrlAuthType,
+  Runtime,
 } from "aws-cdk-lib/aws-lambda";
 import { NextjsGlobalFunctions } from "cdk-nextjs";
 import type { Construct } from "constructs";
@@ -29,6 +30,7 @@ import type { Construct } from "constructs";
 const sourceDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(sourceDirectory, "../../..");
 const webDirectory = path.join(repositoryRoot, "apps/web");
+const apiAssetDirectory = path.join(repositoryRoot, "apps/api/dist");
 const databasePath = path.join(webDirectory, "data/npb.sqlite");
 const deployEnvironment = process.env.DEPLOY_ENV ?? "dev";
 
@@ -43,6 +45,11 @@ class NpbAnalysisWebStack extends Stack {
     if (!existsSync(databasePath)) {
       throw new Error(
         `SQLite database not found at ${databasePath}. Run the parser before deploying.`,
+      );
+    }
+    if (!existsSync(path.join(apiAssetDirectory, "server.mjs"))) {
+      throw new Error(
+        `API asset not found at ${apiAssetDirectory}. Run the API build before deploying.`,
       );
     }
 
@@ -60,12 +67,12 @@ class NpbAnalysisWebStack extends Stack {
       },
     });
 
-    const searchFunction = new DockerImageFunction(this, "SearchFunction", {
-      code: DockerImageCode.fromImageAsset(repositoryRoot, {
-        file: "apps/api/Dockerfile",
-      }),
+    const searchFunction = new LambdaFunction(this, "SearchFunction", {
+      code: Code.fromAsset(apiAssetDirectory),
       description: "Read-only NPB player search API backed by bundled SQLite",
+      handler: "server.handler",
       memorySize: 1024,
+      runtime: Runtime.NODEJS_24_X,
       timeout: Duration.seconds(15),
     });
     const searchFunctionUrl = searchFunction.addFunctionUrl({

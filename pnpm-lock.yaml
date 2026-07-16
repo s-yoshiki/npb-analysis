@@ -18,6 +18,31 @@ importers:
         specifier: 6.0.3
         version: 6.0.3
 
+  apps/api:
+    dependencies:
+      '@hono/node-server':
+        specifier: ^1.19.9
+        version: 1.19.14(hono@4.12.29)
+      hono:
+        specifier: ^4.10.8
+        version: 4.12.29
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.15.3
+      esbuild:
+        specifier: ^0.28.0
+        version: 0.28.0
+      tsx:
+        specifier: ^4.22.3
+        version: 4.22.3
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+
   apps/docs:
     dependencies:
       '@repo/ui':
