@@ -5,7 +5,7 @@ import type {
 import type { StatColumn } from "./player-stat-table";
 
 export const battingColumns: StatColumn<BattingStat>[] = [
-  { key: "season", label: "年度", type: "number" },
+  { key: "season", label: "年度", type: "year" },
   { key: "team", label: "球団", type: "text" },
   { key: "games", label: "試合", type: "number" },
   { key: "plate_appearances", label: "打席", type: "number" },
@@ -33,7 +33,7 @@ export const battingColumns: StatColumn<BattingStat>[] = [
 ];
 
 export const pitchingColumns: StatColumn<PitchingStat>[] = [
-  { key: "season", label: "年度", type: "number" },
+  { key: "season", label: "年度", type: "year" },
   { key: "team", label: "球団", type: "text" },
   { key: "games", label: "登板", type: "number" },
   { key: "wins", label: "勝利", type: "number" },

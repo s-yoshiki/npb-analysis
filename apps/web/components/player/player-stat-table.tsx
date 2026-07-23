@@ -19,9 +19,14 @@ import { formatNumber, formatRate } from "@/lib/format";
 export type StatColumn<T> = {
   key: keyof T;
   label: string;
-  type: "number" | "qualification" | "rate" | "text";
+  type: "number" | "qualification" | "rate" | "text" | "year";
   digits?: number;
 };
+
+/** Columns that read as labels rather than quantities stay left-aligned. */
+function isLabelColumn<T>(column: StatColumn<T>) {
+  return column.type === "text" || column.type === "year";
+}
 
 function displayValue<T extends Record<string, string | number | null>>(
   row: T,
@@ -31,6 +36,11 @@ function displayValue<T extends Record<string, string | number | null>>(
 
   if (column.type === "qualification") {
     return value === 1 ? "到達" : "未到達";
+  }
+
+  // A season is a year, so it must not carry a thousands separator.
+  if (column.type === "year") {
+    return value === null || value === undefined ? "-" : String(value);
   }
 
   if (column.type === "rate") {
@@ -61,30 +71,28 @@ export function PlayerStatTable<
   const secondaryColumn = columns[1];
 
   return (
-    <Card className="bg-card/85">
-      <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <Card>
+      <CardHeader className="gap-3 sm:flex sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <CardTitle className="font-heading text-2xl font-black">
-            {title}
-          </CardTitle>
+          <CardTitle>{title}</CardTitle>
           <CardDescription>抽出した全主要列を表示</CardDescription>
         </div>
-        <Badge variant="secondary">{rows.length} rows</Badge>
+        <Badge variant="secondary">{rows.length}件</Badge>
       </CardHeader>
-      <CardContent className="pt-2">
+      <CardContent>
         {rows.length ? (
           <>
             <div className="grid gap-3 md:hidden">
               {rows.map((row, index) => (
                 <Card key={index}>
-                  <CardContent className="p-4">
+                  <CardContent>
                     <div className="mb-3 flex items-center justify-between gap-3">
-                      <strong className="text-lg">
+                      <strong className="font-medium">
                         {primaryColumn
                           ? String(row[primaryColumn.key] ?? "-")
                           : "-"}
                       </strong>
-                      <span className="text-sm font-bold text-muted-foreground">
+                      <span className="text-sm text-muted-foreground">
                         {secondaryColumn
                           ? String(row[secondaryColumn.key] ?? "-")
                           : "-"}
@@ -93,13 +101,13 @@ export function PlayerStatTable<
                     <div className="grid grid-cols-2 gap-2">
                       {columns.slice(2, 10).map((column) => (
                         <span
-                          className="rounded-md bg-muted px-2 py-2"
+                          className="rounded-lg border border-border px-2 py-1.5"
                           key={String(column.key)}
                         >
-                          <span className="block text-[11px] font-bold text-muted-foreground">
+                          <span className="block text-xs text-muted-foreground">
                             {column.label}
                           </span>
-                          <strong className="block text-base">
+                          <strong className="block font-medium tabular-nums">
                             {displayValue(row, column)}
                           </strong>
                         </span>
@@ -109,22 +117,21 @@ export function PlayerStatTable<
                 </Card>
               ))}
               {summaryRow ? (
-                <Card className="border-primary/30 bg-primary/5">
-                  <CardContent className="p-4">
+                <Card className="bg-muted">
+                  <CardContent>
                     <div className="mb-3 flex items-center justify-between gap-3">
-                      <strong className="text-lg">通算</strong>
-                      <Badge>Career</Badge>
+                      <strong className="font-medium">通算</strong>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {columns.slice(2, 10).map((column) => (
                         <span
-                          className="rounded-md bg-background px-2 py-2"
+                          className="rounded-lg border border-border bg-card px-2 py-1.5"
                           key={String(column.key)}
                         >
-                          <span className="block text-[11px] font-bold text-muted-foreground">
+                          <span className="block text-xs text-muted-foreground">
                             {column.label}
                           </span>
-                          <strong className="block text-base">
+                          <strong className="block font-medium tabular-nums">
                             {displayValue(summaryRow, column)}
                           </strong>
                         </span>
@@ -134,13 +141,13 @@ export function PlayerStatTable<
                 </Card>
               ) : null}
             </div>
-            <div className="hidden overflow-x-auto rounded-xl border border-border/80 md:block">
+            <div className="hidden md:block">
               <Table>
                 <TableHeader>
                   <TableRow>
                     {columns.map((column) => (
                       <TableHead
-                        className={column.type === "text" ? "" : "text-right"}
+                        className={isLabelColumn(column) ? "" : "text-right"}
                         key={String(column.key)}
                       >
                         {column.label}
@@ -153,11 +160,7 @@ export function PlayerStatTable<
                     <TableRow key={index}>
                       {columns.map((column) => (
                         <TableCell
-                          className={
-                            column.type === "text"
-                              ? ""
-                              : "text-right tabular-nums"
-                          }
+                          className={isLabelColumn(column) ? "" : "text-right"}
                           key={String(column.key)}
                         >
                           {displayValue(row, column)}
@@ -166,14 +169,10 @@ export function PlayerStatTable<
                     </TableRow>
                   ))}
                   {summaryRow ? (
-                    <TableRow className="border-primary/30 bg-primary/5 font-bold hover:bg-primary/10">
+                    <TableRow className="bg-muted font-medium hover:bg-muted">
                       {columns.map((column, index) => (
                         <TableCell
-                          className={
-                            column.type === "text"
-                              ? ""
-                              : "text-right tabular-nums"
-                          }
+                          className={isLabelColumn(column) ? "" : "text-right"}
                           key={String(column.key)}
                         >
                           {index === 0

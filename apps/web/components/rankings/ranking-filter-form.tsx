@@ -2,12 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-  LoaderCircle,
-  RotateCcw,
-  Search,
-  SlidersHorizontal,
-} from "lucide-react";
+import { LoaderCircle, RotateCcw, Search } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -49,10 +44,11 @@ function RangeFields({
   toValue?: number;
 }) {
   return (
-    <fieldset className="grid gap-1.5 text-xs font-bold text-muted-foreground">
-      <legend className="mb-1">{label}</legend>
+    <fieldset className="grid gap-1.5">
+      <legend className="mb-1.5 text-sm font-medium">{label}</legend>
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <input
+          aria-label={`${label}（下限）`}
           className="select-field min-w-0"
           defaultValue={fromValue}
           max={max}
@@ -61,8 +57,11 @@ function RangeFields({
           placeholder="下限"
           type="number"
         />
-        <span aria-hidden="true">〜</span>
+        <span aria-hidden="true" className="text-muted-foreground">
+          〜
+        </span>
         <input
+          aria-label={`${label}（上限）`}
           className="select-field min-w-0"
           defaultValue={toValue}
           max={max}
@@ -77,11 +76,7 @@ function RangeFields({
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-muted-foreground">
-      {children}
-    </span>
-  );
+  return <span className="text-sm font-medium">{children}</span>;
 }
 
 export function RankingFilterForm({
@@ -168,40 +163,43 @@ export function RankingFilterForm({
 
   return (
     <form className="space-y-5" ref={formRef}>
-      <div className="flex flex-col gap-3 border-b border-border/70 pb-5 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-border pb-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <span className="grid size-8 place-items-center rounded-lg bg-primary/10 text-primary">
-              <SlidersHorizontal className="size-4" />
-            </span>
-            <h2 className="font-heading text-xl font-black">ランキング条件</h2>
+            <h2 className="text-base font-medium">ランキング条件</h2>
             {isPending ? (
-              <LoaderCircle className="size-4 animate-spin text-primary" />
+              <LoaderCircle
+                aria-hidden="true"
+                className="size-4 animate-spin text-muted-foreground"
+              />
             ) : null}
+            <span aria-live="polite" className="sr-only">
+              {isPending ? "ランキングを更新しています" : ""}
+            </span>
           </div>
-          <p className="mt-2 text-xs leading-5 text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             基本条件は選択と同時に反映されます。選手条件は入力後に「条件を適用」を押してください。
           </p>
         </div>
         <button
-          className={buttonVariants({
-            className: "h-9 gap-2",
-            variant: "outline",
-          })}
+          className={cn(
+            buttonVariants({ size: "lg", variant: "outline" }),
+            "self-start",
+          )}
           disabled={!hasConditions || isPending}
           onClick={clearAll}
           type="button"
         >
-          <RotateCcw className="size-3.5" />
+          <RotateCcw aria-hidden="true" className="size-3.5" />
           条件をクリア
         </button>
       </div>
 
-      <section className="grid gap-4 rounded-2xl border border-border/80 bg-muted/25 p-4 lg:grid-cols-2">
+      <section className="grid gap-4 rounded-lg border border-border bg-muted/40 p-4 lg:grid-cols-2">
         <div>
           <p className="section-kicker">01 / Record</p>
-          <h3 className="mt-1 font-bold">記録の種類</h3>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <h3 className="mt-1 font-medium">記録の種類</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
             打撃・投手と集計する指標を選択
           </p>
         </div>
@@ -272,11 +270,11 @@ export function RankingFilterForm({
         </div>
       </section>
 
-      <section className="grid gap-4 rounded-2xl border border-border/80 bg-muted/25 p-4 lg:grid-cols-2">
+      <section className="grid gap-4 rounded-lg border border-border bg-muted/40 p-4 lg:grid-cols-2">
         <div>
           <p className="section-kicker">02 / Scope</p>
-          <h3 className="mt-1 font-bold">対象範囲</h3>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <h3 className="mt-1 font-medium">対象範囲</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
             年度・リーグ・球団を段階的に絞り込み
           </p>
         </div>
@@ -344,20 +342,20 @@ export function RankingFilterForm({
       </section>
 
       <details
-        className="group overflow-hidden rounded-2xl border border-border/80 bg-card"
+        className="group overflow-hidden rounded-lg border border-border"
         open={activeDetailCount > 0}
       >
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-4 marker:hidden">
           <span>
             <span className="section-kicker">03 / Player</span>
-            <strong className="mt-1 block">選手の詳細条件</strong>
+            <strong className="mt-1 block font-medium">選手の詳細条件</strong>
           </span>
-          <span className="rounded-full bg-muted px-3 py-1 text-xs font-bold text-muted-foreground">
+          <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
             {activeDetailCount ? `${activeDetailCount}件を適用中` : "任意"}
           </span>
         </summary>
-        <div className="grid gap-4 border-t border-border/70 p-4 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="grid gap-1.5 text-xs font-bold text-muted-foreground sm:col-span-2">
+        <div className="grid gap-4 border-t border-border bg-muted/40 p-4 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
             選手名
             <input
               className="select-field"
@@ -367,7 +365,7 @@ export function RankingFilterForm({
               type="search"
             />
           </label>
-          <label className="grid gap-1.5 text-xs font-bold text-muted-foreground">
+          <label className="grid gap-1.5 text-sm font-medium">
             投げ腕
             <select
               className="select-field"
@@ -379,7 +377,7 @@ export function RankingFilterForm({
               <option value="left">左投げ</option>
             </select>
           </label>
-          <label className="grid gap-1.5 text-xs font-bold text-muted-foreground">
+          <label className="grid gap-1.5 text-sm font-medium">
             打席
             <select
               className="select-field"
@@ -392,7 +390,7 @@ export function RankingFilterForm({
               <option value="both">両打ち</option>
             </select>
           </label>
-          <label className="grid gap-1.5 text-xs font-bold text-muted-foreground sm:col-span-2">
+          <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
             出身学校・経歴
             <input
               className="select-field"
@@ -411,7 +409,7 @@ export function RankingFilterForm({
             toName="draftYearMax"
             toValue={filters.draftYearMax}
           />
-          <label className="grid gap-1.5 text-xs font-bold text-muted-foreground">
+          <label className="grid gap-1.5 text-sm font-medium">
             ドラフト順位
             <select
               className="select-field"
@@ -450,22 +448,19 @@ export function RankingFilterForm({
         </div>
       </details>
 
-      <div className="flex flex-col-reverse gap-3 border-t border-border/70 pt-5 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs text-muted-foreground">
+      <div className="flex flex-col-reverse gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-muted-foreground">
           基本条件の変更中は球団候補も自動的に更新されます。
         </p>
         <button
-          className={cn(
-            buttonVariants({ className: "h-10 gap-2 px-5" }),
-            isPending && "opacity-70",
-          )}
+          className={buttonVariants({ size: "lg" })}
           disabled={isPending}
           type="submit"
         >
           {isPending ? (
-            <LoaderCircle className="size-4 animate-spin" />
+            <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />
           ) : (
-            <Search className="size-4" />
+            <Search aria-hidden="true" className="size-4" />
           )}
           条件を適用
         </button>

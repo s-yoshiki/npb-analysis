@@ -45,7 +45,7 @@ pnpm --filter npb-analysis exec tsx src/main.ts \
   --db /private/tmp/npb-parser-debug/npb-debug.sqlite
 ```
 
-抽出した選手データは中間JSONを生成せず、`apps/web/data/npb.sqlite` に直接登録・更新されます。SQLiteファイルは再生成可能なためGit管理対象外です。
+抽出した選手データは中間JSONを生成せず、`apps/web/data/npb.sqlite` に直接登録・更新されます。このSQLiteファイルはWeb・API・デプロイで共通利用するためGit管理対象です。WALや一時SQLiteファイルは管理対象外です。
 
 ## Apps and Packages
 

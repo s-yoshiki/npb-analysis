@@ -1,5 +1,7 @@
-import Link from "next/link";
+import type { Metadata } from "next";
+import { Suspense } from "react";
 import { AppShell } from "@/components/app-shell";
+import { PageHeader } from "@/components/page-header";
 import { RankingFilterForm } from "@/components/rankings/ranking-filter-form";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -18,144 +20,107 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatNumber, formatRate } from "@/lib/format";
+import {
+  parseRankingParams,
+  type RankingSearchParams,
+} from "@/lib/ranking-params";
 import { npbQueryService } from "@/modules/npb/composition";
 import { formatLeague } from "@/modules/npb/domain/models/league";
-import {
-  rankingMetrics,
-  type RankingCategory,
-  type RankingLeague,
-  type RankingMetric,
-  type RankingProfileFilters,
-  type RankingScope,
-} from "@/modules/npb/domain/services/ranking-service";
+import { rankingMetrics } from "@/modules/npb/domain/services/ranking-service";
 
-export const dynamic = "force-dynamic";
+const ROW_LIMIT = 100;
 
-type PageProps = {
-  searchParams?: Promise<Record<string, string | undefined>>;
+export const metadata: Metadata = {
+  title: "ランキング",
+  description:
+    "年度別・通算の各指標をリーグ単位で集計します。率系指標の年度別順位は規定到達者のみが対象です。",
 };
 
-function optionalNumber(value: string | undefined): number | undefined {
-  if (!value?.trim()) return undefined;
-  const number = Number(value);
-  return Number.isFinite(number) ? number : undefined;
-}
+type PageProps = {
+  searchParams: Promise<RankingSearchParams>;
+};
 
 export default async function RankingsPage({ searchParams }: PageProps) {
-  const params = (await searchParams) ?? {};
   const seasons = npbQueryService.getRankingSeasons();
-  const category: RankingCategory =
-    params.category === "pitching" ? "pitching" : "batting";
-  const scope: RankingScope = params.scope === "career" ? "career" : "season";
-  const league: RankingLeague =
-    params.league === "central" || params.league === "pacific"
-      ? params.league
-      : "all";
-  const availableMetrics = rankingMetrics[category];
-  const metric = availableMetrics.some((item) => item.value === params.metric)
-    ? (params.metric as RankingMetric)
-    : availableMetrics[0]!.value;
-  const season =
-    Number(params.season) || seasons[0] || new Date().getFullYear();
+  const params = parseRankingParams(await searchParams, seasons);
+  const { category, filters, league, metric, scope, season, team } = params;
+  const definition = rankingMetrics[category].find(
+    (item) => item.value === metric,
+  );
+
+  if (!definition) return null;
+
   const teams = npbQueryService.getRankingTeams({
     category,
     league,
     scope,
     season,
   });
-  const team = teams.includes(params.team ?? "") ? params.team : undefined;
-  const definition = availableMetrics.find((item) => item.value === metric)!;
-  const filters: RankingProfileFilters = {
-    name: params.name?.trim() || undefined,
-    throws:
-      params.throws === "right" || params.throws === "left"
-        ? params.throws
-        : undefined,
-    bats:
-      params.bats === "right" ||
-      params.bats === "left" ||
-      params.bats === "both"
-        ? params.bats
-        : undefined,
-    school: params.school?.trim() || undefined,
-    draftYearMin: optionalNumber(params.draftYearMin),
-    draftYearMax: optionalNumber(params.draftYearMax),
-    draftRank: params.draftRank?.trim() || undefined,
-    birthYearMin: optionalNumber(params.birthYearMin),
-    birthYearMax: optionalNumber(params.birthYearMax),
-    heightMin: optionalNumber(params.heightMin),
-    heightMax: optionalNumber(params.heightMax),
-  };
-  const hasDetailedFilters = Object.values(filters).some(
-    (value) => value !== undefined,
-  );
   const rows = npbQueryService
     .getRankings({
       category,
+      filters,
       league,
       metric,
       scope,
       season,
       team,
-      filters,
     })
-    .slice(0, 100);
+    .slice(0, ROW_LIMIT);
+
+  const scopeLabel = scope === "career" ? "通算" : `${season}年度`;
+  const leagueLabel = league === "all" ? "全リーグ" : formatLeague(league);
 
   return (
-    <AppShell label="Rankings">
-      <Card className="relative bg-card/85">
-        <div className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-primary to-chart-2" />
-        <CardContent className="px-3 py-4 sm:px-5 sm:py-6">
-          <Badge
-            className="mb-5 border-primary/25 bg-primary/8 text-primary"
-            variant="outline"
-          >
-            League leaderboard
-          </Badge>
-          <h1 className="font-heading text-3xl font-black tracking-[-0.04em] sm:text-3xl">
-            ランキング
-          </h1>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">
-            年度別・通算の各指標をリーグ単位で集計します。率系指標の年度別順位は規定到達者のみが対象です。
-          </p>
+    <AppShell label="ランキング">
+      <PageHeader
+        description="年度別・通算の各指標をリーグ単位で集計します。率系指標の年度別順位は規定到達者のみが対象です。"
+        kicker="League leaderboard"
+        title="ランキング"
+      />
+
+      <Card>
+        <CardContent>
+          <Suspense fallback={null}>
+            <RankingFilterForm
+              category={category}
+              filters={filters}
+              league={league}
+              metric={metric}
+              scope={scope}
+              season={season}
+              seasons={seasons}
+              team={team}
+              teams={teams}
+            />
+          </Suspense>
         </CardContent>
       </Card>
 
-      <Card className="bg-card/85">
-        <CardContent className="py-6">
-          <RankingFilterForm
-            category={category}
-            filters={filters}
-            league={league}
-            metric={metric}
-            scope={scope}
-            season={season}
-            seasons={seasons}
-            team={team}
-            teams={teams}
-          />
-        </CardContent>
-      </Card>
-
-      <Card className="bg-card/85">
-        <CardHeader>
-          <CardTitle className="font-heading text-2xl font-black">
-            {scope === "season" ? `${season}年度` : "通算"}・
-            {team ?? (league === "all" ? "全リーグ" : formatLeague(league))}{" "}
-            {definition.label}
-          </CardTitle>
-          <CardDescription>
-            DB収録データを対象に上位100名を表示
-            {hasDetailedFilters ? "（詳細条件で絞り込み中）" : ""}
-          </CardDescription>
+      <Card>
+        <CardHeader className="gap-3 sm:flex sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle>
+              {scopeLabel}・{leagueLabel}
+              {team ? `・${team}` : ""} {definition.label}
+            </CardTitle>
+            <CardDescription>
+              上位{ROW_LIMIT}名まで表示します
+              {definition.lowerIsBetter ? "（値が小さい順）" : ""}
+            </CardDescription>
+          </div>
+          <Badge variant="secondary">{formatNumber(rows.length)}人</Badge>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-xl border border-border/80">
+          {rows.length ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-20">順位</TableHead>
-                  <TableHead>選手</TableHead>
+                  <TableHead className="w-16 text-right">順位</TableHead>
+                  <TableHead className="min-w-48">選手</TableHead>
+                  {scope === "career" ? null : (
+                    <TableHead className="min-w-28">リーグ</TableHead>
+                  )}
                   <TableHead className="text-right">
                     {definition.label}
                   </TableHead>
@@ -163,19 +128,24 @@ export default async function RankingsPage({ searchParams }: PageProps) {
               </TableHeader>
               <TableBody>
                 {rows.map((row) => (
-                  <TableRow key={row.playerId}>
-                    <TableCell className="font-heading text-lg font-black">
+                  <TableRow key={`${row.playerId}:${row.season ?? "career"}`}>
+                    <TableCell className="text-right font-medium">
                       {row.rank}
                     </TableCell>
                     <TableCell>
-                      <Link
-                        className="font-bold hover:text-primary"
-                        href={`/players/${row.playerId}`}
+                      <a
+                        className="font-medium transition-colors hover:text-primary"
+                        href={`/players/${row.playerId}/`}
                       >
                         {row.name}
-                      </Link>
+                      </a>
                     </TableCell>
-                    <TableCell className="text-right font-bold tabular-nums">
+                    {scope === "career" ? null : (
+                      <TableCell className="text-muted-foreground">
+                        {formatLeague(row.league)}
+                      </TableCell>
+                    )}
+                    <TableCell className="text-right">
                       {definition.rate
                         ? formatRate(row.value)
                         : formatNumber(row.value, definition.digits)}
@@ -184,7 +154,11 @@ export default async function RankingsPage({ searchParams }: PageProps) {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          ) : (
+            <p className="py-12 text-center text-sm text-muted-foreground">
+              条件に一致する記録がありません。条件を減らしてお試しください。
+            </p>
+          )}
         </CardContent>
       </Card>
     </AppShell>

@@ -1,6 +1,7 @@
+import { RotateCcw, Search } from "lucide-react";
 import Link from "next/link";
-import { RotateCcw, Search, SlidersHorizontal } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { PlayerFilters } from "@/modules/npb/domain/models/player";
 
 function RangeFields({
@@ -21,10 +22,11 @@ function RangeFields({
   toValue?: number;
 }) {
   return (
-    <fieldset className="grid gap-1.5 text-xs font-bold text-muted-foreground">
-      <legend className="mb-1">{label}</legend>
+    <fieldset className="grid gap-1.5">
+      <legend className="mb-1.5 text-sm font-medium">{label}</legend>
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <input
+          aria-label={`${label}（下限）`}
           className="select-field min-w-0"
           defaultValue={fromValue}
           max={max}
@@ -33,8 +35,11 @@ function RangeFields({
           placeholder="下限"
           type="number"
         />
-        <span aria-hidden="true">〜</span>
+        <span aria-hidden="true" className="text-muted-foreground">
+          〜
+        </span>
         <input
+          aria-label={`${label}（上限）`}
           className="select-field min-w-0"
           defaultValue={toValue}
           max={max}
@@ -62,32 +67,31 @@ export function PlayerFilterForm({
 
   return (
     <form action="/players" className="space-y-5" method="get">
-      <div className="flex flex-col gap-3 border-b border-border/70 pb-5 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-border pb-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="grid size-8 place-items-center rounded-lg bg-primary/10 text-primary">
-              <SlidersHorizontal className="size-4" />
-            </span>
-            <h2 className="font-heading text-xl font-black">選手の絞り込み</h2>
-          </div>
-          <p className="mt-2 text-xs leading-5 text-muted-foreground">
+          <h2 className="text-base font-medium">選手の絞り込み</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             選手名やプロフィールを組み合わせて検索できます。
           </p>
         </div>
-        <Link
-          className={buttonVariants({
-            className: activeCount ? "h-9 gap-2" : "h-9 gap-2 opacity-50",
-            variant: "outline",
-          })}
-          href="/players"
-        >
-          <RotateCcw className="size-3.5" />
-          条件をクリア
-        </Link>
+        {/* Rendered only when there is something to clear, so the control is
+            never present in a permanently dimmed, still-clickable state. */}
+        {activeCount ? (
+          <Link
+            className={cn(
+              buttonVariants({ size: "lg", variant: "outline" }),
+              "self-start",
+            )}
+            href="/players"
+          >
+            <RotateCcw aria-hidden="true" className="size-3.5" />
+            条件をクリア
+          </Link>
+        ) : null}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="grid gap-1.5 text-xs font-bold text-muted-foreground">
+        <label className="grid gap-1.5 text-sm font-medium">
           選手区分
           <select
             className="select-field"
@@ -99,7 +103,7 @@ export function PlayerFilterForm({
             <option value="pitching">投手</option>
           </select>
         </label>
-        <label className="grid gap-1.5 text-xs font-bold text-muted-foreground sm:col-span-2">
+        <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
           選手名
           <input
             className="select-field"
@@ -109,7 +113,7 @@ export function PlayerFilterForm({
             type="search"
           />
         </label>
-        <label className="grid gap-1.5 text-xs font-bold text-muted-foreground">
+        <label className="grid gap-1.5 text-sm font-medium">
           投げ腕
           <select
             className="select-field"
@@ -121,7 +125,7 @@ export function PlayerFilterForm({
             <option value="left">左投げ</option>
           </select>
         </label>
-        <label className="grid gap-1.5 text-xs font-bold text-muted-foreground">
+        <label className="grid gap-1.5 text-sm font-medium">
           打席
           <select
             className="select-field"
@@ -134,7 +138,7 @@ export function PlayerFilterForm({
             <option value="both">両打ち</option>
           </select>
         </label>
-        <label className="grid gap-1.5 text-xs font-bold text-muted-foreground sm:col-span-2">
+        <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
           出身学校・経歴
           <input
             className="select-field"
@@ -153,7 +157,7 @@ export function PlayerFilterForm({
           toName="draftYearMax"
           toValue={filters.draftYearMax}
         />
-        <label className="grid gap-1.5 text-xs font-bold text-muted-foreground">
+        <label className="grid gap-1.5 text-sm font-medium">
           ドラフト順位
           <select
             className="select-field"
@@ -189,17 +193,14 @@ export function PlayerFilterForm({
         />
       </div>
 
-      <div className="flex items-center justify-between gap-3 border-t border-border/70 pt-5">
-        <p className="text-xs text-muted-foreground">
+      <div className="flex items-center justify-between gap-3 border-t border-border pt-5">
+        <p className="text-sm text-muted-foreground">
           {activeCount
             ? `${activeCount}件の条件を指定中`
             : "条件は指定されていません"}
         </p>
-        <button
-          className={buttonVariants({ className: "h-10 gap-2 px-5" })}
-          type="submit"
-        >
-          <Search className="size-4" />
+        <button className={buttonVariants({ size: "lg" })} type="submit">
+          <Search aria-hidden="true" className="size-4" />
           条件を適用
         </button>
       </div>

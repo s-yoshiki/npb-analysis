@@ -1,23 +1,16 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import "./globals.css";
-import { Geist } from "next/font/google";
-import { cn } from "@/lib/utils";
-
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
-
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-});
+import { ThemeScript } from "@/components/theme-script";
 
 export const metadata: Metadata = {
-  title: "NPB Analysis",
-  description: "NPB player database viewer and visualization dashboard.",
+  title: {
+    default: "NPB Analysis",
+    template: "%s | NPB Analysis",
+  },
+  description:
+    "NPB公式記録をもとに、選手プロフィールと打撃・投手成績を検索・集計・可視化するデータアーカイブです。",
+  applicationName: "NPB Analysis",
+  formatDetection: { address: false, email: false, telephone: false },
 };
 
 export default function RootLayout({
@@ -26,10 +19,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={cn("font-sans", geist.variable)}>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
-      </body>
+    // The pre-paint script mutates <html>, which the server cannot predict.
+    <html lang="ja" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
+      <body>{children}</body>
     </html>
   );
 }

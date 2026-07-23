@@ -1,4 +1,20 @@
-const numberFormatter = new Intl.NumberFormat("ja-JP");
+const formatters = new Map<number, Intl.NumberFormat>();
+
+/**
+ * Columns are read against each other, so a fixed number of decimals is kept
+ * even when they are zero: an ERA of 2.8 must line up as "2.80" beside "2.81".
+ */
+function formatterFor(digits: number): Intl.NumberFormat {
+  const cached = formatters.get(digits);
+  if (cached) return cached;
+
+  const formatter = new Intl.NumberFormat("ja-JP", {
+    maximumFractionDigits: digits,
+    minimumFractionDigits: digits,
+  });
+  formatters.set(digits, formatter);
+  return formatter;
+}
 
 export function formatNumber(
   value: number | null | undefined,
@@ -8,7 +24,7 @@ export function formatNumber(
     return "-";
   }
 
-  return numberFormatter.format(digits ? Number(value.toFixed(digits)) : value);
+  return formatterFor(digits).format(value);
 }
 
 export function formatRate(value: number | null | undefined): string {
