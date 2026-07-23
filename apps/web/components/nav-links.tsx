@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -15,20 +16,19 @@ export function NavLinks() {
 
   return (
     <nav
-      className="flex items-center gap-1 rounded-full border border-border/70 bg-card/70 p-1 shadow-sm"
       aria-label="メインナビゲーション"
+      className="flex items-center gap-0.5"
     >
       {links.map((link) => {
         const active =
           link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+
         return (
           <Link
             aria-current={active ? "page" : undefined}
             className={cn(
-              "rounded-full px-3 py-2 text-xs font-bold transition-all sm:px-4 sm:text-sm",
-              active
-                ? "bg-primary text-white shadow-sm"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              buttonVariants({ size: "lg", variant: "ghost" }),
+              active && "bg-accent text-accent-foreground",
             )}
             href={link.href}
             key={link.href}

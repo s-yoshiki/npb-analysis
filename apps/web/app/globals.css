@@ -2,198 +2,244 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/* Dark mode is driven by a `.dark` class on <html>, set before paint by the
+   inline script in app/layout.tsx so there is no flash of the wrong theme. */
+@custom-variant dark (&:is(.dark, .dark *));
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  font-synthesis: none;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@theme inline {
-  --font-heading: var(--font-sans);
-  --font-sans: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-}
-
+/*
+ * Shared palette with DevToysWeb and tech-blog.s-yoshiki.com: a calm blue-grey
+ * neutral ramp with a single indigo accent. Values are plain hex so they stay
+ * comparable with those repositories; Tailwind's `/opacity` modifiers still
+ * work because v4 composes them with `color-mix()`.
+ */
 :root {
-  --background: oklch(0.955 0.025 240);
-  --foreground: oklch(0.205 0.045 255);
-  --card: oklch(0.988 0.012 240);
-  --card-foreground: oklch(0.205 0.035 256);
-  --popover: oklch(0.988 0.012 240);
-  --popover-foreground: oklch(0.205 0.035 256);
-  --primary: oklch(0.43 0.15 250);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.91 0.034 235);
-  --secondary-foreground: oklch(0.25 0.04 256);
-  --muted: oklch(0.93 0.023 235);
-  --muted-foreground: oklch(0.49 0.04 253);
-  --accent: oklch(0.89 0.055 235);
-  --accent-foreground: oklch(0.25 0.04 256);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.85 0.028 239);
-  --input: oklch(0.83 0.035 239);
-  --ring: oklch(0.52 0.15 250);
-  --chart-1: oklch(0.52 0.15 250);
-  --chart-2: oklch(0.65 0.13 214);
-  --chart-3: oklch(0.72 0.11 195);
-  --chart-4: oklch(0.53 0.11 268);
-  --chart-5: oklch(0.72 0.1 270);
-  --radius: 0.75rem;
-  --sidebar: oklch(0.984 0.006 247);
-  --sidebar-foreground: oklch(0.279 0.041 260);
-  --sidebar-primary: oklch(0.546 0.215 262);
-  --sidebar-primary-foreground: oklch(0.985 0.006 247);
-  --sidebar-accent: oklch(0.948 0.014 247);
-  --sidebar-accent-foreground: oklch(0.372 0.044 257);
-  --sidebar-border: oklch(0.921 0.013 255);
-  --sidebar-ring: oklch(0.623 0.188 260);
+  --bg: #fbfbfd;
+  --surface: #ffffff;
+  --surface-subtle: #f4f5f8;
+  --border-subtle: #e3e6ec;
+  --border-strong: #ccd1da;
+  --text: #16181d;
+  --text-muted: #616b7a;
+  --accent: #3b5bdb;
+  --accent-hover: #2f4bc4;
+  --accent-subtle: #eaefff;
+  --accent-contrast: #ffffff;
+
+  --elevation-sm: 0 1px 2px rgb(16 18 27 / 0.06);
+  --elevation: 0 4px 16px rgb(16 18 27 / 0.08);
+
+  /* shadcn surface tokens, mapped onto the palette above. */
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--surface);
+  --card-foreground: var(--text);
+  --popover: var(--surface);
+  --popover-foreground: var(--text);
+  --primary: var(--accent);
+  --primary-foreground: var(--accent-contrast);
+  --secondary: var(--surface-subtle);
+  --secondary-foreground: var(--text);
+  --muted: var(--surface-subtle);
+  --muted-foreground: var(--text-muted);
+  --accent-foreground: var(--accent-hover);
+  --border: var(--border-subtle);
+  --input: var(--border-strong);
+  --ring: var(--accent);
+
+  /*
+   * Status colours from the same Open Color family as the accent, darkened
+   * until each clears 4.5:1 against every light surface (bg, card and muted)
+   * because they carry small text, not just icons.
+   */
+  --destructive: #c92a2a;
+  --destructive-foreground: #ffffff;
+  --success: #237032;
+  --warning: #ad3e0b;
+
+  /* Categorical series for charts, ordered by how often they are needed. */
+  --chart-1: #3b5bdb;
+  --chart-2: #1c7ed6;
+  --chart-3: #0ca678;
+  --chart-4: #e8590c;
+  --chart-5: #7048e8;
+
+  --radius: 10px;
+  /* Single source of truth for the sticky header, shared by the content
+     offsets below it so the two can never drift apart. */
+  --header-height: 3.5rem;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --bg: #0f1116;
+  --surface: #171a21;
+  --surface-subtle: #1e222b;
+  --border-subtle: #272c37;
+  --border-strong: #3a4150;
+  --text: #e7e9ee;
+  --text-muted: #9aa3b2;
+  --accent: #7d97ff;
+  --accent-hover: #93a9ff;
+  --accent-subtle: #1c2440;
+  --accent-contrast: #0f1116;
+
+  --elevation-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --elevation: 0 4px 16px rgb(0 0 0 / 0.45);
+
+  /* The accent is a light tint here, so hover must brighten and text on the
+     accent must be the dark background rather than white. */
+  --accent-foreground: #c3cfff;
+  --input: var(--border-strong);
+
+  --destructive: #ff8787;
+  --destructive-foreground: #0f1116;
+  --success: #69db7c;
+  --warning: #ffa94d;
+
+  --chart-1: #7d97ff;
+  --chart-2: #4dabf7;
+  --chart-3: #38d9a9;
+  --chart-4: #ffa94d;
+  --chart-5: #b197fc;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent-subtle);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: var(--radius);
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+  --radius-4xl: 999px;
+
+  --shadow-sm: var(--elevation-sm);
+  --shadow-md: var(--elevation);
+
+  --font-sans:
+    system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP",
+    Meiryo, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
+  --font-heading: var(--font-sans);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+  }
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--header-height) + 1rem);
+    /* Keeps the form-control and scrollbar UA chrome in step with the theme. */
+    color-scheme: light;
+  }
+  .dark {
+    color-scheme: dark;
   }
   body {
-    @apply bg-background text-foreground antialiased;
-    background-image:
-      radial-gradient(
-        circle at 8% 0%,
-        color-mix(in oklab, var(--primary) 12%, transparent),
-        transparent 32rem
-      ),
-      linear-gradient(
-        color-mix(in oklab, var(--primary) 4%, transparent) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        90deg,
-        color-mix(in oklab, var(--primary) 4%, transparent) 1px,
-        transparent 1px
-      );
-    background-size:
-      auto,
-      32px 32px,
-      32px 32px;
-    background-attachment: fixed;
+    @apply min-h-svh bg-background text-foreground antialiased;
+    font-synthesis: none;
   }
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
-  html {
-    @apply font-sans;
+  /*
+   * One consistent, clearly visible focus ring for every interactive element.
+   * `:focus-visible` keeps it off mouse clicks, so it never reads as noise.
+   */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+  ::selection {
+    background: var(--accent-subtle);
+    color: var(--accent-hover);
+  }
+  code,
+  pre,
+  kbd,
+  samp {
+    @apply font-mono;
+  }
+  /* Numeric columns must line up: the stat tables are read column-wise. */
+  th,
+  td {
+    font-variant-numeric: tabular-nums;
   }
 }
 
 @layer components {
   .section-kicker {
-    @apply text-[10px] font-extrabold uppercase tracking-[0.22em] text-primary;
+    @apply text-xs font-medium uppercase tracking-wider text-muted-foreground;
   }
 
+  /*
+   * Native select and number inputs, matched to the `Input` primitive so every
+   * control in a filter row shares one height and one border treatment.
+   */
   .select-field {
-    @apply h-10 rounded-xl border border-input bg-card/90 px-3 text-sm text-foreground shadow-sm outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/20;
+    @apply h-9 rounded-lg border border-input bg-card px-3 text-sm font-normal text-foreground outline-none transition-colors hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-50;
   }
-}
-
-::selection {
-  background: color-mix(in oklab, var(--primary) 22%, transparent);
 }
 
 ::-webkit-scrollbar {
   width: 10px;
+  height: 10px;
 }
-
 ::-webkit-scrollbar-track {
-  background: oklch(0.955 0.02 240);
+  background: var(--surface-subtle);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: oklch(0.869 0.022 252);
+  background: var(--border-strong);
+  border: 2px solid var(--surface-subtle);
   border-radius: 999px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.704 0.04 257);
+/* Respect the OS "reduce motion" setting instead of animating regardless. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore-start lint/complexity/noImportantStyles: durations are set
+       by Tailwind utilities on the elements themselves, so only `!important`
+       can override them from here. */
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    /* biome-ignore-end lint/complexity/noImportantStyles: see above */
+  }
 }

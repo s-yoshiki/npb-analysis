@@ -14,21 +14,26 @@ export function PlayerSearchForm({
   const { isPending, submitSearch } = usePlayerSearch(basePath);
 
   return (
-    <div>
-      <form action={submitSearch} className="grid gap-4">
-        <div className="grid gap-1 sm:grid-cols-[1fr_auto]">
-          <Input
-            className="h-11 bg-background text-foreground placeholder:text-muted-foreground"
-            id="q"
-            name="q"
-            placeholder="例: 王, 佐々木, おおたに"
-            defaultValue={defaultValue}
-          />
-          <Button className="h-11 px-6" disabled={isPending} type="submit">
-            {isPending ? "検索中" : "検索"}
-          </Button>
-        </div>
-      </form>
-    </div>
+    <form action={submitSearch} className="flex gap-2">
+      {/* The placeholder is an example, not a label, so name the field. */}
+      <label className="sr-only" htmlFor="player-search">
+        選手名
+      </label>
+      <Input
+        defaultValue={defaultValue}
+        id="player-search"
+        name="q"
+        placeholder="例: 王, 佐々木, おおたに"
+        type="search"
+      />
+      <Button
+        aria-busy={isPending}
+        disabled={isPending}
+        size="lg"
+        type="submit"
+      >
+        {isPending ? "検索中" : "検索"}
+      </Button>
+    </form>
   );
 }

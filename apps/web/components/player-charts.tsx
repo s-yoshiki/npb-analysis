@@ -48,20 +48,18 @@ export function PlayerMetricChart({
   );
 
   return (
-    <Card className="bg-card/85">
-      <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <Card>
+      <CardHeader className="gap-4 sm:flex sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <CardTitle className="font-heading text-xl font-black">
-            {title}
-          </CardTitle>
+          <CardTitle>{title}</CardTitle>
           <CardDescription>
             選択した指標を年度別の棒グラフで表示
           </CardDescription>
         </div>
-        <label className="grid gap-1 text-xs font-bold text-muted-foreground">
+        <label className="grid gap-1.5 text-sm font-medium">
           表示指標
           <select
-            className="select-field h-9 font-semibold"
+            className="select-field"
             onChange={(event) => setMetric(event.target.value)}
             value={metric}
           >
@@ -91,11 +89,24 @@ export function PlayerMetricChart({
                   width={48}
                 />
                 <Tooltip
+                  contentStyle={{
+                    background: "var(--card)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "var(--radius)",
+                    boxShadow: "var(--elevation)",
+                    color: "var(--foreground)",
+                    fontSize: 12,
+                  }}
+                  cursor={{ fill: "var(--muted)" }}
                   formatter={(value) => [String(value ?? "-"), selected.label]}
+                  labelStyle={{ color: "var(--muted-foreground)" }}
                 />
+                {/* The entrance animation adds nothing here and can leave the
+                    bars stranded mid-transition on the first render. */}
                 <Bar
                   dataKey="value"
                   fill="var(--chart-1)"
+                  isAnimationActive={false}
                   name={selected.label}
                   radius={[4, 4, 0, 0]}
                 />

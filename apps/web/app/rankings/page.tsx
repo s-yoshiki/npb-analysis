@@ -1,4 +1,8 @@
+import type { Metadata } from "next";
+import { Suspense } from "react";
 import { AppShell } from "@/components/app-shell";
+import { PageHeader } from "@/components/page-header";
+import { RankingFilterForm } from "@/components/rankings/ranking-filter-form";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -16,62 +20,107 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatNumber, formatRate } from "@/lib/format";
+import {
+  parseRankingParams,
+  type RankingSearchParams,
+} from "@/lib/ranking-params";
 import { npbQueryService } from "@/modules/npb/composition";
+import { formatLeague } from "@/modules/npb/domain/models/league";
 import { rankingMetrics } from "@/modules/npb/domain/services/ranking-service";
 
-export const revalidate = 86400;
+const ROW_LIMIT = 100;
 
-export default function RankingsPage() {
+export const metadata: Metadata = {
+  title: "ランキング",
+  description:
+    "年度別・通算の各指標をリーグ単位で集計します。率系指標の年度別順位は規定到達者のみが対象です。",
+};
+
+type PageProps = {
+  searchParams: Promise<RankingSearchParams>;
+};
+
+export default async function RankingsPage({ searchParams }: PageProps) {
   const seasons = npbQueryService.getRankingSeasons();
-  const season = seasons[0] ?? new Date().getFullYear();
-  const definition = rankingMetrics.batting[0];
+  const params = parseRankingParams(await searchParams, seasons);
+  const { category, filters, league, metric, scope, season, team } = params;
+  const definition = rankingMetrics[category].find(
+    (item) => item.value === metric,
+  );
+
   if (!definition) return null;
+
+  const teams = npbQueryService.getRankingTeams({
+    category,
+    league,
+    scope,
+    season,
+  });
   const rows = npbQueryService
     .getRankings({
-      category: "batting",
-      league: "all",
-      metric: definition.value,
-      scope: "season",
+      category,
+      filters,
+      league,
+      metric,
+      scope,
       season,
+      team,
     })
-    .slice(0, 100);
+    .slice(0, ROW_LIMIT);
+
+  const scopeLabel = scope === "career" ? "通算" : `${season}年度`;
+  const leagueLabel = league === "all" ? "全リーグ" : formatLeague(league);
 
   return (
-    <AppShell label="Rankings">
-      <Card className="relative bg-card/85">
-        <div className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-primary to-chart-2" />
-        <CardContent className="px-3 py-4 sm:px-5 sm:py-6">
-          <Badge
-            className="mb-5 border-primary/25 bg-primary/8 text-primary"
-            variant="outline"
-          >
-            League leaderboard
-          </Badge>
-          <h1 className="font-heading text-3xl font-black tracking-[-0.04em] sm:text-3xl">
-            ランキング
-          </h1>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">
-            年度別・通算の各指標をリーグ単位で集計します。率系指標の年度別順位は規定到達者のみが対象です。
-          </p>
+    <AppShell label="ランキング">
+      <PageHeader
+        description="年度別・通算の各指標をリーグ単位で集計します。率系指標の年度別順位は規定到達者のみが対象です。"
+        kicker="League leaderboard"
+        title="ランキング"
+      />
+
+      <Card>
+        <CardContent>
+          <Suspense fallback={null}>
+            <RankingFilterForm
+              category={category}
+              filters={filters}
+              league={league}
+              metric={metric}
+              scope={scope}
+              season={season}
+              seasons={seasons}
+              team={team}
+              teams={teams}
+            />
+          </Suspense>
         </CardContent>
       </Card>
 
-      <Card className="bg-card/85">
-        <CardHeader>
-          <CardTitle className="font-heading text-2xl font-black">
-            {season}年度・全リーグ {definition.label}
-          </CardTitle>
-          <CardDescription>
-            DB収録データを対象に上位100名を表示（データ更新時に再生成）
-          </CardDescription>
+      <Card>
+        <CardHeader className="gap-3 sm:flex sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle>
+              {scopeLabel}・{leagueLabel}
+              {team ? `・${team}` : ""} {definition.label}
+            </CardTitle>
+            <CardDescription>
+              上位{ROW_LIMIT}名まで表示します
+              {definition.lowerIsBetter ? "（値が小さい順）" : ""}
+            </CardDescription>
+          </div>
+          <Badge variant="secondary">{formatNumber(rows.length)}人</Badge>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-xl border border-border/80">
+          {rows.length ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-20">順位</TableHead>
-                  <TableHead>選手</TableHead>
+                  <TableHead className="w-16 text-right">順位</TableHead>
+                  <TableHead className="min-w-48">選手</TableHead>
+                  {scope === "career" ? null : (
+                    <TableHead className="min-w-28">リーグ</TableHead>
+                  )}
                   <TableHead className="text-right">
                     {definition.label}
                   </TableHead>
@@ -79,19 +128,24 @@ export default function RankingsPage() {
               </TableHeader>
               <TableBody>
                 {rows.map((row) => (
-                  <TableRow key={row.playerId}>
-                    <TableCell className="font-heading text-lg font-black">
+                  <TableRow key={`${row.playerId}:${row.season ?? "career"}`}>
+                    <TableCell className="text-right font-medium">
                       {row.rank}
                     </TableCell>
                     <TableCell>
                       <a
-                        className="font-bold hover:text-primary"
+                        className="font-medium transition-colors hover:text-primary"
                         href={`/players/${row.playerId}/`}
                       >
                         {row.name}
                       </a>
                     </TableCell>
-                    <TableCell className="text-right font-bold tabular-nums">
+                    {scope === "career" ? null : (
+                      <TableCell className="text-muted-foreground">
+                        {formatLeague(row.league)}
+                      </TableCell>
+                    )}
+                    <TableCell className="text-right">
                       {definition.rate
                         ? formatRate(row.value)
                         : formatNumber(row.value, definition.digits)}
@@ -100,7 +154,11 @@ export default function RankingsPage() {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          ) : (
+            <p className="py-12 text-center text-sm text-muted-foreground">
+              条件に一致する記録がありません。条件を減らしてお試しください。
+            </p>
+          )}
         </CardContent>
       </Card>
     </AppShell>

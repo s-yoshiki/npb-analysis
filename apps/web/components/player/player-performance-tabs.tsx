@@ -1,6 +1,5 @@
 "use client";
 
-import { Activity, BarChart3 } from "lucide-react";
 import {
   PlayerMetricChart,
   type ChartMetric,
@@ -12,8 +11,13 @@ import {
   pitchingColumns,
 } from "@/components/player/player-stat-columns";
 import { PlayerStatTable } from "@/components/player/player-stat-table";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatNumber, formatRate } from "@/lib/format";
 import type {
@@ -77,14 +81,12 @@ function toPitchingChart(rows: PitchingStat[]): ChartPoint[] {
 
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
-    <span className="whitespace-nowrap">
-      <strong className="font-heading text-xl font-black tracking-tight sm:text-2xl">
+    <div className="whitespace-nowrap">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="text-xl font-semibold tracking-tight tabular-nums">
         {value}
-      </strong>
-      <span className="ml-1 text-xs font-bold text-muted-foreground sm:text-sm">
-        {label}
-      </span>
-    </span>
+      </dd>
+    </div>
   );
 }
 
@@ -125,21 +127,20 @@ function CareerSummary({
         : [];
 
   return (
-    <Card className="overflow-hidden border-primary/20 bg-[linear-gradient(120deg,var(--card),color-mix(in_oklab,var(--primary)_10%,var(--card)))]">
-      <CardContent className="relative p-5 sm:p-7">
-        <BarChart3 className="absolute -right-3 -top-4 size-24 text-primary/8" />
-        <div className="mb-4 flex items-center gap-2">
-          <Badge variant="outline">Career overview</Badge>
-          <span className="text-xs font-bold text-muted-foreground">
-            通算成績
-          </span>
-        </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>通算成績</CardTitle>
+        <CardDescription>
+          収録されている全年度を合算した記録です。
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
         {items.length ? (
-          <div className="flex flex-wrap items-baseline gap-x-5 gap-y-3">
+          <dl className="flex flex-wrap gap-x-8 gap-y-4">
             {items.map((item) => (
               <SummaryItem key={item.label} {...item} />
             ))}
-          </div>
+          </dl>
         ) : (
           <p className="text-sm text-muted-foreground">
             通算成績がありません。
@@ -178,13 +179,14 @@ export function PlayerPerformanceTabs({
 
   return (
     <Tabs className="gap-5" defaultValue={initialCategory}>
-      <div className="sticky top-3 z-30 flex justify-center">
-        <TabsList className="grid h-12 w-full max-w-md grid-cols-2 border border-border/80 bg-card/95 p-1 shadow-lg backdrop-blur">
+      {/* Offset by the sticky header so the bar is never hidden behind it. */}
+      <div className="sticky top-(--header-height) z-30 -mx-4 bg-background/85 px-4 py-2 backdrop-blur-md sm:-mx-6 sm:px-6">
+        <TabsList className="grid h-10 w-full max-w-md grid-cols-2">
           <TabsTrigger disabled={!batting.length} value="batting">
-            <Activity /> 野手成績
+            野手成績
           </TabsTrigger>
           <TabsTrigger disabled={!pitching.length} value="pitching">
-            <Activity /> 投手成績
+            投手成績
           </TabsTrigger>
         </TabsList>
       </div>

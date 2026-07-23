@@ -36,7 +36,7 @@ export function PlayerPagination({
   return (
     <nav
       aria-label="選手一覧ページネーション"
-      className="flex flex-col items-center justify-between gap-3 border-t pt-4 sm:flex-row"
+      className="flex flex-col items-center justify-between gap-3 border-t border-border pt-4 sm:flex-row"
     >
       <p className="text-sm text-muted-foreground">
         {page} / {totalPages} ページ
@@ -45,7 +45,7 @@ export function PlayerPagination({
         <Link
           aria-disabled={page <= 1}
           className={cn(
-            buttonVariants({ size: "sm", variant: "outline" }),
+            buttonVariants({ size: "lg", variant: "outline" }),
             page <= 1 && "pointer-events-none opacity-50",
           )}
           href={pageHref(page - 1, searchParams)}
@@ -59,11 +59,18 @@ export function PlayerPagination({
           return (
             <span className="flex items-center gap-2" key={visiblePage}>
               {needsGap ? (
-                <span className="px-1 text-sm text-muted-foreground">...</span>
+                <span
+                  aria-hidden="true"
+                  className="px-1 text-sm text-muted-foreground"
+                >
+                  …
+                </span>
               ) : null}
               <Link
+                aria-current={visiblePage === page ? "page" : undefined}
+                aria-label={`${visiblePage}ページ目`}
                 className={buttonVariants({
-                  size: "sm",
+                  size: "lg",
                   variant: visiblePage === page ? "default" : "outline",
                 })}
                 href={pageHref(visiblePage, searchParams)}
@@ -76,7 +83,7 @@ export function PlayerPagination({
         <Link
           aria-disabled={page >= totalPages}
           className={cn(
-            buttonVariants({ size: "sm", variant: "outline" }),
+            buttonVariants({ size: "lg", variant: "outline" }),
             page >= totalPages && "pointer-events-none opacity-50",
           )}
           href={pageHref(page + 1, searchParams)}

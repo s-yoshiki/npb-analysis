@@ -6,6 +6,7 @@ import { PlayerResults } from "@/components/dashboard/player-results";
 import { PlayerFilterForm } from "@/components/players/player-filter-form";
 import { PlayerPagination } from "@/components/players/player-pagination";
 import { Card, CardContent } from "@/components/ui/card";
+import { formatNumber } from "@/lib/format";
 import type {
   PlayerFilters,
   PlayerListPage,
@@ -36,7 +37,8 @@ export function PlayerSearch() {
         ? (searchParams.get("category") as "batting" | "pitching")
         : undefined,
     throws:
-      searchParams.get("throws") === "right" || searchParams.get("throws") === "left"
+      searchParams.get("throws") === "right" ||
+      searchParams.get("throws") === "left"
         ? (searchParams.get("throws") as "right" | "left")
         : undefined,
     bats:
@@ -67,13 +69,17 @@ export function PlayerSearch() {
 
     fetch(`/api/players?${params}`, { signal: controller.signal })
       .then((response) => {
-        if (!response.ok) throw new Error(`Search API returned ${response.status}`);
+        if (!response.ok)
+          throw new Error(`Search API returned ${response.status}`);
         return response.json() as Promise<PlayerListPage>;
       })
       .then(setResult)
       .catch((cause: unknown) => {
-        if (cause instanceof DOMException && cause.name === "AbortError") return;
-        setError("検索結果を取得できませんでした。時間をおいて再度お試しください。");
+        if (cause instanceof DOMException && cause.name === "AbortError")
+          return;
+        setError(
+          "検索結果を取得できませんでした。時間をおいて再度お試しください。",
+        );
       })
       .finally(() => setLoading(false));
 
@@ -81,28 +87,43 @@ export function PlayerSearch() {
   }, [serializedParams]);
 
   const paginationParams = Object.fromEntries(
-    [...searchParams.entries()].filter(([key, value]) => key !== "page" && value.trim()),
+    [...searchParams.entries()].filter(
+      ([key, value]) => key !== "page" && value.trim(),
+    ),
   );
   const start = result.total ? (result.page - 1) * result.pageSize + 1 : 0;
   const end = Math.min(result.page * result.pageSize, result.total);
 
   return (
-    <>
-      <Card className="bg-card/85">
-        <CardContent className="py-6">
+    <div className="space-y-8">
+      <Card>
+        <CardContent>
           <PlayerFilterForm filters={filters} query={query} />
         </CardContent>
       </Card>
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? (
+        <Card className="border-destructive/40">
+          <CardContent className="text-sm text-destructive" role="alert">
+            {error}
+          </CardContent>
+        </Card>
+      ) : null}
       {loading ? (
-        <Card className="bg-card/85">
-          <CardContent className="py-12 text-center text-sm text-muted-foreground">
+        <Card>
+          <CardContent
+            aria-live="polite"
+            className="py-12 text-center text-sm text-muted-foreground"
+          >
             検索しています。
           </CardContent>
         </Card>
       ) : (
         <PlayerResults
-          description={`${start}-${end} 件目を表示`}
+          description={
+            result.total
+              ? `${formatNumber(result.total)}人中 ${start}〜${end}人を表示`
+              : "該当する選手がいません"
+          }
           pageSummary={
             <PlayerPagination
               page={result.page}
@@ -115,6 +136,6 @@ export function PlayerSearch() {
           total={result.total}
         />
       )}
-    </>
+    </div>
   );
 }

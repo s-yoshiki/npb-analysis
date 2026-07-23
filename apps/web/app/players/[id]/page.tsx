@@ -1,12 +1,11 @@
+import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { PlayerPerformanceTabs } from "@/components/player/player-performance-tabs";
 import { PlayerProfileCard } from "@/components/player/player-profile-card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { sumNumeric } from "@/lib/format";
 import { npbQueryService } from "@/modules/npb/composition";
 import type {
@@ -123,11 +122,8 @@ export async function generateMetadata({
   const { id } = await params;
   const detail = npbQueryService.getPlayerDetail(id);
 
-  return {
-    title: detail
-      ? `${detail.profile.name} | NPB Analysis`
-      : "Player | NPB Analysis",
-  };
+  // The root layout's title template appends the site name.
+  return { title: detail ? detail.profile.name : "選手詳細" };
 }
 
 export default async function PlayerPage({ params }: PageProps) {
@@ -161,57 +157,34 @@ export default async function PlayerPage({ params }: PageProps) {
   }));
 
   return (
-    <AppShell label="Player File">
-      <Card className="relative overflow-hidden border-0 bg-[linear-gradient(135deg,var(--foreground)_0%,oklch(0.3_0.1_245)_100%)] text-background ring-1 ring-white/10">
-        <div className="absolute -right-12 -top-20 size-72 rounded-full bg-primary/35 blur-3xl" />
-        <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px)] [background-size:40px_40px]" />
-        <CardContent className="px-6 py-8 sm:px-10 sm:py-12">
-          <Link
-            className={buttonVariants({
-              className:
-                "mb-10 text-background/65 hover:bg-background/10 hover:text-background",
-              variant: "ghost",
-            })}
-            href="/players"
-          >
-            一覧へ戻る
-          </Link>
-          <div className="grid items-end gap-6 md:grid-cols-[1fr_auto]">
-            <div>
-              <Badge
-                className="mb-5 border-background/20 bg-background/10 text-background"
-                variant="outline"
-              >
-                Player file / {profile.id}
-              </Badge>
-              <Badge
-                className="mb-5 ml-2 border-background/20 bg-background/10 text-background"
-                variant="outline"
-              >
-                {defaultCategory === "pitching" ? "投手" : "野手"}
-              </Badge>
-              <h1 className="font-heading text-4xl font-black leading-[0.96] tracking-[-0.05em] sm:text-6xl">
-                {profile.name}
-              </h1>
-              <p className="mt-4 text-sm tracking-[.08em] text-background/55 sm:text-base">
-                {profile.kana || profile.id}
-              </p>
-            </div>
-            <a
-              className={buttonVariants({
-                variant: "outline",
-                className:
-                  "w-full border-background/20 bg-transparent text-background hover:bg-background/10 hover:text-background md:w-auto",
-              })}
-              href={profile.player_url}
-              target="_blank"
-              rel="noreferrer"
-            >
-              NPB公式ページ
-            </a>
+    <AppShell
+      label={[{ href: "/players", label: "選手一覧" }, { label: profile.name }]}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary">
+              {defaultCategory === "pitching" ? "投手" : "野手"}
+            </Badge>
+            <span className="text-sm text-muted-foreground">{profile.id}</span>
           </div>
-        </CardContent>
-      </Card>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+            {profile.name}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {profile.kana || profile.id}
+          </p>
+        </div>
+        <a
+          className={buttonVariants({ size: "lg", variant: "outline" })}
+          href={profile.player_url}
+          rel="noreferrer"
+          target="_blank"
+        >
+          NPB公式ページ
+          <ExternalLink aria-hidden="true" className="size-4" />
+        </a>
+      </div>
 
       <PlayerProfileCard detailJson={profile.detail_json} />
 
